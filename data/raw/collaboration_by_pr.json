@@ -28282,5 +28282,491 @@
     "distinct_partner_logins": [
       "haacked"
     ]
+  },
+  "49644": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 0,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {},
+    "requested_reviewers_at_fetch": 0,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": []
+  },
+  "48626": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 2,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {
+      "fercgomes": 2
+    },
+    "requested_reviewers_at_fetch": 3,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": [
+      "fercgomes"
+    ]
+  },
+  "48624": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 0,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {},
+    "requested_reviewers_at_fetch": 0,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": []
+  },
+  "48623": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 1,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {
+      "orian": 1
+    },
+    "requested_reviewers_at_fetch": 2,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": [
+      "orian"
+    ]
+  },
+  "48622": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 0,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {},
+    "requested_reviewers_at_fetch": 1,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": []
+  },
+  "48621": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 0,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {},
+    "requested_reviewers_at_fetch": 0,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": []
+  },
+  "48619": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 0,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {},
+    "requested_reviewers_at_fetch": 0,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": []
+  },
+  "48615": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 1,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {
+      "estefaniarabadan": 1
+    },
+    "requested_reviewers_at_fetch": 0,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": [
+      "estefaniarabadan"
+    ]
+  },
+  "48614": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 0,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {},
+    "requested_reviewers_at_fetch": 0,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": []
+  },
+  "48613": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 0,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {},
+    "requested_reviewers_at_fetch": 0,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": []
+  },
+  "48612": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 0,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {},
+    "requested_reviewers_at_fetch": 0,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": []
+  },
+  "48610": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 0,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {},
+    "requested_reviewers_at_fetch": 0,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": []
+  },
+  "48609": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 0,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {},
+    "requested_reviewers_at_fetch": 0,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": []
+  },
+  "48608": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 0,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {},
+    "requested_reviewers_at_fetch": 0,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": []
+  },
+  "48607": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 0,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {},
+    "requested_reviewers_at_fetch": 3,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": []
+  },
+  "48605": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 0,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {},
+    "requested_reviewers_at_fetch": 0,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": []
+  },
+  "48604": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 0,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {},
+    "requested_reviewers_at_fetch": 0,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": []
+  },
+  "48602": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 0,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {},
+    "requested_reviewers_at_fetch": 0,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": []
+  },
+  "48601": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 0,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {},
+    "requested_reviewers_at_fetch": 0,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": []
+  },
+  "48600": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 0,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {},
+    "requested_reviewers_at_fetch": 0,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": []
+  },
+  "48598": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 1,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {
+      "Radu-Raicea": 1
+    },
+    "requested_reviewers_at_fetch": 0,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": [
+      "Radu-Raicea"
+    ]
+  },
+  "48597": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 0,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {},
+    "requested_reviewers_at_fetch": 0,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": []
+  },
+  "48595": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 0,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {},
+    "requested_reviewers_at_fetch": 1,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": []
+  },
+  "48594": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 0,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {},
+    "requested_reviewers_at_fetch": 1,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": []
+  },
+  "48589": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 0,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {},
+    "requested_reviewers_at_fetch": 0,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": []
+  },
+  "48588": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 0,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {},
+    "requested_reviewers_at_fetch": 0,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": []
+  },
+  "48586": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 0,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {},
+    "requested_reviewers_at_fetch": 0,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": []
+  },
+  "48585": {
+    "issue_comments_from_others_after_open": 1,
+    "review_line_comments_from_others_after_open": 0,
+    "issue_comments_by_login_after_open": {
+      "lricoy": 1
+    },
+    "review_line_comments_by_login_after_open": {},
+    "requested_reviewers_at_fetch": 0,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": [
+      "lricoy"
+    ]
+  },
+  "48584": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 0,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {},
+    "requested_reviewers_at_fetch": 0,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": []
+  },
+  "48583": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 0,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {},
+    "requested_reviewers_at_fetch": 0,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": []
+  },
+  "48579": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 1,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {
+      "hpouillot": 1
+    },
+    "requested_reviewers_at_fetch": 0,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": [
+      "hpouillot"
+    ]
+  },
+  "48577": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 0,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {},
+    "requested_reviewers_at_fetch": 0,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": []
+  },
+  "48576": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 0,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {},
+    "requested_reviewers_at_fetch": 1,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": []
+  },
+  "48575": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 0,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {},
+    "requested_reviewers_at_fetch": 0,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": []
+  },
+  "48574": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 0,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {},
+    "requested_reviewers_at_fetch": 1,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": []
+  },
+  "48573": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 0,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {},
+    "requested_reviewers_at_fetch": 0,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": []
+  },
+  "48572": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 0,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {},
+    "requested_reviewers_at_fetch": 1,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": []
+  },
+  "48571": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 0,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {},
+    "requested_reviewers_at_fetch": 0,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": []
+  },
+  "48568": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 0,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {},
+    "requested_reviewers_at_fetch": 0,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": []
+  },
+  "48567": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 0,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {},
+    "requested_reviewers_at_fetch": 0,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": []
+  },
+  "48566": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 0,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {},
+    "requested_reviewers_at_fetch": 0,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": []
+  },
+  "48565": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 2,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {
+      "andrewm4894": 2
+    },
+    "requested_reviewers_at_fetch": 0,
+    "assignees_non_author": 1,
+    "distinct_partner_logins": [
+      "andrewm4894"
+    ]
+  },
+  "48564": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 0,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {},
+    "requested_reviewers_at_fetch": 0,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": []
+  },
+  "48563": {
+    "issue_comments_from_others_after_open": 1,
+    "review_line_comments_from_others_after_open": 0,
+    "issue_comments_by_login_after_open": {
+      "sakce": 1
+    },
+    "review_line_comments_by_login_after_open": {},
+    "requested_reviewers_at_fetch": 0,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": [
+      "sakce"
+    ]
+  },
+  "48562": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 0,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {},
+    "requested_reviewers_at_fetch": 0,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": []
+  },
+  "48561": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 1,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {
+      "lmenezes": 1
+    },
+    "requested_reviewers_at_fetch": 0,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": [
+      "lmenezes"
+    ]
+  },
+  "48560": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 0,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {},
+    "requested_reviewers_at_fetch": 0,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": []
+  },
+  "48559": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 0,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {},
+    "requested_reviewers_at_fetch": 0,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": []
+  },
+  "48558": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 0,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {},
+    "requested_reviewers_at_fetch": 0,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": []
+  },
+  "48557": {
+    "issue_comments_from_others_after_open": 0,
+    "review_line_comments_from_others_after_open": 0,
+    "issue_comments_by_login_after_open": {},
+    "review_line_comments_by_login_after_open": {},
+    "requested_reviewers_at_fetch": 0,
+    "assignees_non_author": 0,
+    "distinct_partner_logins": []
   }
 }

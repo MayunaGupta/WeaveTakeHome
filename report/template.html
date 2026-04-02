@@ -221,8 +221,11 @@
       <dl id="ddl"></dl>
     </div>
     <footer>
+      <strong>Live dashboard:</strong>
+      <a href="https://mayunagupta.github.io/WeaveTakeHome/" target="_blank" rel="noopener noreferrer">https://mayunagupta.github.io/WeaveTakeHome/</a>
+      —
       <strong>Notion / sheets:</strong> import <code>data/metrics/engineers_for_notion.csv</code> (after compute).
-      <strong>Host:</strong> upload this folder to Netlify, Cloudflare Pages, or GitHub Pages.
+      <strong>Host your own:</strong> upload this folder to Netlify, Cloudflare Pages, or GitHub Pages.
       <strong>Pipeline:</strong> <code>fetch_data.py</code> → <code>data/raw/</code>; <code>compute_metrics.py</code> → <code>data/metrics/</code>.
       <strong>Delivery:</strong> issue keywords in PR text; tests <code>--fetch-files</code>; merge CI <code>--fetch-merge-checks</code>; teammate engagement after open <code>--fetch-collaboration</code>.
       Metrics are heuristics — use for trends, not performance reviews in isolation.
@@ -408,7 +411,7 @@
       </div>
 
       <div class="card" style="margin-top: 0.75rem;">
-        <strong>Build time (for context)</strong>: about <code>1:08:38</code> of focused work on the assignment itself.
+        <strong>Build time (for context)</strong>: about <code>1:20:19</code> of focused work on the assignment itself.
         The full GitHub <strong>data pull</strong> through <strong>completion of merged-PR fetching</strong> (search slices,
         per-PR payloads, optional files/reviews/collaboration/checks) took on the order of <strong>~14 hours</strong> wall
         clock, including rate limits and checkpoints.

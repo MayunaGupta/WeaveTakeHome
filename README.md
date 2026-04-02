@@ -4,6 +4,8 @@ Pulls **merged PRs, reviews, optional files, CI checks, and collaboration signal
 
 Designed for **trend and discussion**, not as a single source of truth for performance reviews.
 
+**Live dashboard (GitHub Pages):** [https://mayunagupta.github.io/WeaveTakeHome/](https://mayunagupta.github.io/WeaveTakeHome/)
+
 ## Requirements
 
 - Python 3.10+
@@ -27,7 +29,7 @@ python fetch_data.py --data ./data --repo PostHog/posthog --days 90 \
 python compute_metrics.py --data ./data --build-report
 ```
 
-Open `data/metrics/index.html` in a browser, or publish that folder (see [Hosting](#hosting)).
+Open [`data/metrics/index.html`](data/metrics/index.html) locally, use the hosted build at [https://mayunagupta.github.io/WeaveTakeHome/](https://mayunagupta.github.io/WeaveTakeHome/), or publish that folder yourself (see [Hosting](#hosting)).
 
 ### One-shot (legacy)
 
@@ -84,7 +86,7 @@ Import `data/metrics/engineers_for_notion.csv` into Notion or Google Sheets (sam
 
 ## Dashboard usage (static HTML)
 
-After `python compute_metrics.py --data ./data --build-report`, open `data/metrics/index.html` (or the GitHub Pages site) and use:
+After `python compute_metrics.py --data ./data --build-report`, open `data/metrics/index.html` or the hosted site [https://mayunagupta.github.io/WeaveTakeHome/](https://mayunagupta.github.io/WeaveTakeHome/) and use:
 
 - **Overview**: sortable leaderboard of engineers with drill-down on each engineer.
 - **Timelines**: merge-day “streak & gap” view.
@@ -100,7 +102,7 @@ The exported tables include `performance_band` (High/Medium/Low) derived from te
 
 ## Build time context
 
-- Focused assignment work: about `1:08:38`
+- Focused assignment work: about `1:20:19`
 - Full `fetch_data` run (GitHub data pull through completion of merged-PR fetching, including optional files/reviews/collaboration/checks): on the order of **~14 hours** wall clock (rate limits, checkpoints, large repo)
 
 ## Hosting (GitHub Pages)
@@ -109,7 +111,7 @@ Running **`compute_metrics.py --build-report`** writes **`data/metrics/index.htm
 
 1. Commit the repo (include `docs/index.html` if you use the `/docs` Pages source).
 2. **Settings → Pages →** Branch `main`, folder **`/docs`**.
-3. Site URL: `https://<user>.github.io/<repo>/`
+3. Example deployment: [https://mayunagupta.github.io/WeaveTakeHome/](https://mayunagupta.github.io/WeaveTakeHome/) — your site will follow `https://<user>.github.io/<repo>/`
 
 Do **not** commit tokens. Consider `.gitignore` for `data/raw/` if it is huge.
 
