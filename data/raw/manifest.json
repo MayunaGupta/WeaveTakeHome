@@ -1,0 +1,14 @@
+{
+  "fetched_at": "2026-04-02T03:57:29.028988+00:00",
+  "repo": "PostHog/posthog",
+  "window_days": 20,
+  "window_start": "2026-03-12",
+  "window_end": "2026-04-01",
+  "flags": {
+    "fetch_files": true,
+    "fetch_reviews": true,
+    "fetch_collaboration": true,
+    "fetch_merge_checks": true,
+    "fetch_actions": true
+  }
+}

@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Engineer metrics — __REPO__</title>
+  <style>
+    :root {
+      --bg: #0f1115;
+      --panel: #161a22;
+      --border: #2a3140;
+      --text: #e8eaed;
+      --muted: #9aa3b2;
+      --accent: #5c7cfa;
+      --good: #3ddc97;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    header {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--panel);
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+    h1 { margin: 0 0 0.25rem; font-size: 1.1rem; font-weight: 600; }
+    .meta { color: var(--muted); font-size: 12px; }
+    main { padding: 1rem 1.25rem 2rem; max-width: 1200px; margin: 0 auto; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 0.65rem;
+      margin-bottom: 1.25rem;
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.65rem 0.75rem;
+    }
+    .card strong { display: block; font-size: 1.35rem; font-weight: 600; color: var(--good); }
+    .card span { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
+    label { color: var(--muted); font-size: 12px; margin-right: 0.5rem; }
+    input[type="search"] {
+      width: min(420px, 100%);
+      padding: 0.45rem 0.6rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    th, td {
+      text-align: left;
+      padding: 0.45rem 0.55rem;
+      border-bottom: 1px solid var(--border);
+    }
+    th {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+    th:hover { color: var(--text); }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(92, 124, 250, 0.06); }
+    .login { font-weight: 600; color: var(--accent); }
+    .num { text-align: right; font-variant-numeric: tabular-nums; }
+    .detail {
+      margin-top: 1rem;
+      padding: 1rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel);
+      display: none;
+    }
+    .detail.open { display: block; }
+    .detail h2 { margin: 0 0 0.5rem; font-size: 1rem; }
+    .detail dl {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 0.35rem 1rem;
+      margin: 0;
+    }
+    .detail dt { color: var(--muted); }
+    .detail dd { margin: 0; }
+    footer {
+      margin-top: 2rem;
+      color: var(--muted);
+      font-size: 11px;
+    }
+    a { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Engineer productivity & impact</h1>
+    <div class="meta" id="subtitle"></div>
+  </header>
+  <main>
+    <div class="grid" id="kpis"></div>
+    <p style="margin:0 0 0.75rem;">
+      <label for="q">Filter</label>
+      <input type="search" id="q" placeholder="GitHub login…" autocomplete="off" />
+    </p>
+    <div style="overflow-x:auto;">
+      <table id="tbl">
+        <thead><tr id="head"></tr></thead>
+        <tbody id="body"></tbody>
+      </table>
+    </div>
+    <div class="detail" id="detail">
+      <h2 id="dlogin"></h2>
+      <dl id="ddl"></dl>
+    </div>
+    <footer>
+      <strong>Notion / sheets:</strong> import <code>data/metrics/engineers_for_notion.csv</code> (after compute).
+      <strong>Host:</strong> upload this folder to Netlify, Cloudflare Pages, or GitHub Pages.
+      <strong>Pipeline:</strong> <code>fetch_data.py</code> → <code>data/raw/</code>; <code>compute_metrics.py</code> → <code>data/metrics/</code>.
+      <strong>Delivery:</strong> issue keywords in PR text; tests <code>--fetch-files</code>; merge CI <code>--fetch-merge-checks</code>; teammate engagement after open <code>--fetch-collaboration</code>.
+      Metrics are heuristics — use for trends, not performance reviews in isolation.
+    </footer>
+  </main>
+  <script type="application/json" id="payload">__PAYLOAD__</script>
+  <script>
+    const payload = JSON.parse(document.getElementById('payload').textContent);
+    const engineers = payload.engineers || [];
+    const meta = payload.meta || {};
+
+    document.getElementById('subtitle').textContent =
+      `${meta.repo || ''} · last ${meta.window_days || '?'} days (${meta.window_start || ''} → ${meta.window_end || ''}) · generated ${meta.generated_at || ''}`;
+
+    const kpis = document.getElementById('kpis');
+    const k = meta.totals || {};
+    [
+      ['Engineers tracked', k.distinct_engineers],
+      ['Merged PRs (window)', k.merged_prs],
+      ['Open PRs touched', k.open_prs_touched],
+      ['PRs opened (window)', k.prs_opened],
+      ['Workflow runs (sample)', k.workflow_runs_sampled],
+    ].forEach(([label, val]) => {
+      const el = document.createElement('div');
+      el.className = 'card';
+      el.innerHTML = `<span>${label}</span><strong>${val ?? '—'}</strong>`;
+      kpis.appendChild(el);
+    });
+
+    function escAttr(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+    }
+    function escCell(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    const columns = [
+      { key: 'login', label: 'Login', fmt: (r) => `<span class="login">${escCell(r.login)}</span>` },
+      { key: 'full_stack_score', label: 'Full stack Σ', num: true },
+      { key: 'delivery_score', label: 'Delivery Σ', num: true },
+      { key: 'collaboration_score', label: 'Collab Σ', num: true },
+      { key: 'combined_score', label: 'Code+review Σ', num: true },
+      { key: 'collab_prs_with_teammate_after_open', label: 'PRs w/ teammate Δ', num: true },
+      { key: 'collab_unique_partners_on_own_prs', label: 'Partners on PRs', num: true },
+      { key: 'collab_issue_comments_others_after_open', label: 'Teammate issue cmts', num: true },
+      { key: 'collab_line_comments_others_after_open', label: 'Teammate line cmts', num: true },
+      {
+        key: 'rewarded_skills',
+        label: 'Skills (celebrate)',
+        fmt: (r) => {
+          const s = r.rewarded_skills || '—';
+          if (s === '—') return '—';
+          const short = s.length > 36 ? s.slice(0, 33) + '…' : s;
+          return `<span title="${escAttr(s)}">${escCell(short)}</span>`;
+        },
+      },
+      { key: 'prs_with_close_keyword', label: 'PRs close issue', num: true },
+      { key: 'linked_issue_refs', label: 'Issue refs', num: true },
+      { key: 'prs_touching_tests', label: 'PRs w/ tests', num: true },
+      { key: 'test_files_touched', label: 'Test files', num: true },
+      { key: 'merge_check_success_pct', label: 'Merge CI %', num: true, fmt: (r) => (r.merge_check_success_pct != null ? r.merge_check_success_pct + '%' : '—') },
+      { key: 'merge_check_runs_total', label: 'Merge checks n', num: true },
+      { key: 'merge_rate_pct', label: 'Merge %', num: true, fmt: (r) => (r.merge_rate_pct != null ? r.merge_rate_pct + '%' : '—') },
+      { key: 'merged_prs', label: 'Merged', num: true },
+      { key: 'prs_opened_in_window', label: 'Opened', num: true },
+      { key: 'open_prs_updated', label: 'Open PRs', num: true },
+      { key: 'open_wip_churn', label: 'Open WIP ±lines', num: true },
+      { key: 'median_cycle_days', label: 'Med days→merge', num: true },
+      { key: 'commits_on_merged_prs', label: 'Commits (merged)', num: true },
+      { key: 'avg_commits_per_merged_pr', label: 'Avg commits/PR', num: true },
+      { key: 'discussion_on_merged_prs', label: 'PR discussion', num: true },
+      { key: 'workflow_runs', label: 'CI runs', num: true },
+      { key: 'shipping_score', label: 'Ship score', num: true },
+      { key: 'review_score', label: 'Review score', num: true },
+      { key: 'additions', label: '+lines', num: true },
+      { key: 'deletions', label: '−lines', num: true },
+      { key: 'changed_files', label: 'Files', num: true },
+      { key: 'review_events_on_others_prs', label: 'Reviews', num: true },
+      { key: 'revert_merges', label: 'Reverts', num: true },
+    ];
+
+    const head = document.getElementById('head');
+    columns.forEach((c) => {
+      const th = document.createElement('th');
+      th.textContent = c.label;
+      th.dataset.key = c.key;
+      th.dataset.num = c.num ? '1' : '';
+      head.appendChild(th);
+    });
+
+    let sortKey = 'full_stack_score';
+    let sortDir = -1;
+
+    function rowHtml(r) {
+      return columns.map((c) => {
+        let inner;
+        if (c.fmt) inner = c.fmt(r);
+        else inner = r[c.key] != null ? String(r[c.key]) : '—';
+        const cls = c.num ? ' num' : '';
+        return `<td class="${cls.trim()}">${inner}</td>`;
+      }).join('');
+    }
+
+    function cmp(a, b) {
+      const av = a[sortKey];
+      const bv = b[sortKey];
+      if (av == null && bv == null) return 0;
+      if (av == null) return 1;
+      if (bv == null) return -1;
+      if (typeof av === 'number' && typeof bv === 'number') return (av - bv) * sortDir;
+      return String(av).localeCompare(String(bv)) * sortDir;
+    }
+
+    function render() {
+      const q = document.getElementById('q').value.trim().toLowerCase();
+      let rows = engineers.filter((r) => !q || (r.login && r.login.toLowerCase().includes(q)));
+      rows = rows.slice().sort(cmp);
+      const body = document.getElementById('body');
+      body.innerHTML = rows.map((r) => `<tr data-login="${r.login}">${rowHtml(r)}</tr>`).join('');
+      body.querySelectorAll('tr').forEach((tr) => {
+        tr.addEventListener('click', () => showDetail(tr.dataset.login));
+      });
+    }
+
+    head.querySelectorAll('th').forEach((th) => {
+      th.addEventListener('click', () => {
+        const k = th.dataset.key;
+        if (sortKey === k) sortDir *= -1;
+        else { sortKey = k; sortDir = th.dataset.num ? -1 : 1; }
+        render();
+      });
+    });
+
+    document.getElementById('q').addEventListener('input', render);
+
+    function showDetail(login) {
+      const r = engineers.find((x) => x.login === login);
+      const d = document.getElementById('detail');
+      if (!r) { d.classList.remove('open'); return; }
+      d.classList.add('open');
+      document.getElementById('dlogin').textContent = r.login;
+      const parts = [
+        ['Full stack score (default sort)', r.full_stack_score],
+        ['Delivery score (issues + tests + merge CI)', r.delivery_score],
+        ['Collaboration score (teammates after open)', r.collaboration_score],
+        ['Code + review (combined)', r.combined_score],
+        ['PRs w/ teammate issue or line comments after open', r.collab_prs_with_teammate_after_open],
+        ['Unique partners commenting on your merged PRs', r.collab_unique_partners_on_own_prs],
+        ['Teammate issue comments (after PR open)', r.collab_issue_comments_others_after_open],
+        ['Teammate review line comments (after PR open)', r.collab_line_comments_others_after_open],
+        ['Σ requested reviewers (snapshot on fetch; often 0 post-merge)', r.collab_requested_reviewers_sum],
+        ['Σ assignees (non-author) on fetch snapshot', r.collab_assignees_non_author_sum],
+        ['Rewarded skills (narrative)', r.rewarded_skills],
+        ['Merged PRs w/ close/fix/resolve #issue', r.prs_with_close_keyword],
+        ['Linked issue ref count (may overlap)', r.linked_issue_refs],
+        ['Merged PRs touching test/e2e paths', r.prs_touching_tests],
+        ['Test-related files touched (merged PRs)', r.test_files_touched],
+        ['Merge-commit checks (completed)', r.merge_check_runs_total],
+        ['Merge CI success % (completed only)', r.merge_check_success_pct != null ? r.merge_check_success_pct + '%' : '—'],
+        ['Merge CI failures (completed)', r.merge_check_failures],
+        ['Shipping score', r.shipping_score],
+        ['Review score', r.review_score],
+        ['Merged PRs', r.merged_prs],
+        ['PRs opened in window', r.prs_opened_in_window],
+        ['Open PRs updated in window', r.open_prs_updated],
+        ['Open WIP line churn (+/−)', r.open_wip_churn],
+        ['Merge rate (opened→merged approx.)', r.merge_rate_pct != null ? r.merge_rate_pct + '%' : '—'],
+        ['Median days to merge', r.median_cycle_days],
+        ['Total commits on merged PRs', r.commits_on_merged_prs],
+        ['Avg commits per merged PR', r.avg_commits_per_merged_pr],
+        ['Issue + review comments on merged PRs', r.discussion_on_merged_prs],
+        ['Workflow runs attributed', r.workflow_runs],
+        ['Lines added / deleted', `${r.additions} / ${r.deletions}`],
+        ['Files changed (merged PRs)', r.changed_files],
+        ['Review events on others’ PRs', r.review_events_on_others_prs],
+        ['Revert-style merges', r.revert_merges],
+        ['Draft merges', r.draft_merges],
+        ['Largest single PR (files)', r.max_changed_files_single_pr],
+        ['Productivity note', r.note || ''],
+      ];
+      function escHtml(v) {
+        if (v == null || v === '') return '—';
+        if (typeof v === 'number' && !Number.isNaN(v)) return String(v);
+        return String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      }
+      document.getElementById('ddl').innerHTML = parts
+        .map(([k, v]) => `<dt>${escHtml(k)}</dt><dd>${escHtml(v)}</dd>`)
+        .join('');
+    }
+
+    render();
+  </script>
+</body>
+</html>
