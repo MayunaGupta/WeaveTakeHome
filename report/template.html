@@ -193,6 +193,8 @@
       <button type="button" class="tab active" data-panel="panel-overview">Overview</button>
       <button type="button" class="tab" data-panel="panel-timelines">Timelines</button>
       <button type="button" class="tab" data-panel="panel-scoring">Scoring logic</button>
+      <button type="button" class="tab" data-panel="panel-contrib">PR / Issue contributions</button>
+      <button type="button" class="tab" data-panel="panel-improvements">Improvements</button>
     </nav>
   </header>
   <main>
@@ -201,6 +203,12 @@
     <p style="margin:0 0 0.75rem;">
       <label for="q">Filter</label>
       <input type="search" id="q" placeholder="GitHub login…" autocomplete="off" />
+      <label for="topN" style="margin-left: 1rem;">Show</label>
+      <select id="topN" style="padding: 0.45rem 0.6rem; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: var(--text);">
+        <option value="all" selected>All</option>
+        <option value="10">Top 10</option>
+        <option value="5">Top 5</option>
+      </select>
     </p>
     <div style="overflow-x:auto;">
       <table id="tbl">
@@ -306,6 +314,104 @@
 
       <div class="card">
         <strong>Scheduling band</strong>: <code>performance_band</code> is High/Medium/Low from tertiles on <code>full_stack_score</code> within the computed window (not an absolute “quality” measure).
+      </div>
+    </section>
+
+    <section id="panel-contrib" class="tab-panel" hidden>
+      <h2 style="margin: 0 0 0.75rem; font-size: 1.05rem;">PR / Issue contributions (by everyone involved)</h2>
+
+      <div class="card" style="margin-bottom: 0.75rem;">
+        <strong>What this view shows:</strong> for a selected <em>merged PR</em> (or an <em>issue linked via close/fix/resolve #NNN</em>),
+        we display a participant breakdown:
+        PR author shipping proxy, review leverage (if fetched), and collaboration comments after PR open (if fetched).
+        <div class="meta" style="margin-top: 0.5rem;">
+          Note: for UI size we only embed contributions for a top subset of PRs (see `contrib.prs` in the page payload).
+        </div>
+      </div>
+
+      <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+        <div class="card">
+          <label for="contribType" class="meta" style="display:block; margin:0 0 0.35rem;">Type</label>
+          <select id="contribType" style="width:100%; padding:0.45rem 0.55rem; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--text);">
+            <option value="prs" selected>PR</option>
+            <option value="issues">Issue</option>
+          </select>
+        </div>
+        <div class="card">
+          <label for="contribQ" class="meta" style="display:block; margin:0 0 0.35rem;">Search</label>
+          <input type="search" id="contribQ" placeholder="Try: 53100, issue 12345, keyword…" autocomplete="off"
+                 style="width:100%; padding:0.45rem 0.55rem; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--text);" />
+        </div>
+      </div>
+
+      <p class="meta" id="contribHint" style="margin:0 0 0.75rem;"></p>
+
+      <div class="grid" style="grid-template-columns: 260px 1fr; gap: 0.75rem; align-items:start;">
+        <div class="card">
+          <label for="contribSel" class="meta" style="display:block; margin:0 0 0.35rem;">Select</label>
+          <select id="contribSel" size="10" style="width:100%; height: 340px; padding:0.35rem 0.4rem; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--text);"></select>
+        </div>
+        <div class="card">
+          <h3 id="contribTitle" style="margin:0 0 0.5rem; font-size: 1rem;">—</h3>
+          <div class="meta" id="contribMeta" style="margin-bottom:0.75rem;"></div>
+          <div style="overflow-x:auto;">
+            <table id="contribTbl">
+              <thead>
+                <tr>
+                  <th>Login</th>
+                  <th class="num">Total</th>
+                  <th class="num">Ship</th>
+                  <th class="num">Review</th>
+                  <th class="num">Comments</th>
+                  <th>Flags</th>
+                </tr>
+              </thead>
+              <tbody id="contribBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="panel-improvements" class="tab-panel" hidden>
+      <h2 style="margin: 0 0 0.75rem; font-size: 1.05rem;">Possible improvements (next iteration)</h2>
+
+      <div class="card" style="margin-bottom: 0.75rem;">
+        <strong>1) Make it more real-time</strong>
+        <ul style="margin: 0.5rem 0 0 1.1rem; padding: 0;">
+          <li>Add a lightweight ingestion layer: GitHub webhooks for PR events (opened, synchronized, review submitted, closed/merged).</li>
+          <li>Store raw events + snapshots, then recompute metrics on a schedule (e.g., every hour) or incrementally.</li>
+          <li>For dashboards, update a single JSON blob and re-render the static UI (or serve via a small API).</li>
+        </ul>
+        <div class="meta" style="margin-top: 0.5rem;">
+          This avoids re-running large searches and per-PR fetches for every report.
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom: 0.75rem;">
+        <strong>2) Speed up fetching</strong>
+        <ul style="margin: 0.5rem 0 0 1.1rem; padding: 0;">
+          <li>Cache per-PR responses (pull details, files, reviews) keyed by PR number + last updated time.</li>
+          <li>Use selective fetching: only fetch expensive fields (files/reviews/collaboration) for PRs that are likely to matter (e.g., large diffs, certain paths/labels, close-keyword presence).</li>
+          <li>Parallelize requests with rate-limit awareness, or reduce round-trips with GraphQL batching.</li>
+          <li>Why we used 30 days / smaller windows: GitHub search returns up to 1000 results per query, and per-PR fetches multiply API calls.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <strong>3) Clustering: score-based → rule-based + ramp-up</strong>
+        <ul style="margin: 0.5rem 0 0 1.1rem; padding: 0;">
+          <li>Today’s clustering is score-derived (heuristic). With PostHog-specific business context, we can make it more rule-based (e.g., core product areas vs infra, ownership of key workflows).</li>
+          <li>On longer windows, estimate “when they joined the project” (e.g., first PR in that area) and compute <em>time-to-first-impact</em> / ramp-up speed.</li>
+          <li>Add labels for special roles: on-call ownership, incident follow-ups, release gating, or core review rotations.</li>
+        </ul>
+      </div>
+
+      <div class="card" style="margin-top: 0.75rem;">
+        <strong>Build time (for context)</strong>: about <code>1:08:38</code> of focused work on the assignment itself.
+        The full GitHub <strong>data pull</strong> through <strong>completion of merged-PR fetching</strong> (search slices,
+        per-PR payloads, optional files/reviews/collaboration/checks) took on the order of <strong>~14 hours</strong> wall
+        clock, including rate limits and checkpoints.
       </div>
     </section>
   </main>
@@ -511,6 +617,13 @@
       const q = document.getElementById('q').value.trim().toLowerCase();
       let rows = engineers.filter((r) => !q || (r.login && r.login.toLowerCase().includes(q)));
       rows = rows.slice().sort(cmp);
+      const topN = document.getElementById('topN') ? document.getElementById('topN').value : 'all';
+      if (topN && topN !== 'all') {
+        const n = parseInt(topN, 10);
+        if (!Number.isNaN(n) && n > 0) {
+          rows = rows.slice(0, n);
+        }
+      }
       const body = document.getElementById('body');
       body.innerHTML = rows.map((r) => `<tr data-login="${r.login}">${rowHtml(r)}</tr>`).join('');
       body.querySelectorAll('tr').forEach((tr) => {
@@ -528,6 +641,8 @@
     });
 
     document.getElementById('q').addEventListener('input', render);
+    const topNEl = document.getElementById('topN');
+    if (topNEl) topNEl.addEventListener('change', render);
 
     function showDetail(login) {
       const r = engineers.find((x) => x.login === login);
@@ -594,6 +709,141 @@
     }
 
     render();
+
+    // Contributions tab (PR / Issue)
+    const contrib = payload.contrib || {};
+    const contribTypeEl = document.getElementById('contribType');
+    const contribQEl = document.getElementById('contribQ');
+    const contribSelEl = document.getElementById('contribSel');
+    const contribTitleEl = document.getElementById('contribTitle');
+    const contribMetaEl = document.getElementById('contribMeta');
+    const contribHintEl = document.getElementById('contribHint');
+    const contribBodyEl = document.getElementById('contribBody');
+
+    function escHtml(v) {
+      if (v == null || v === '') return '—';
+      if (typeof v === 'number' && !Number.isNaN(v)) return String(v);
+      return String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function renderContribTable(type, key) {
+      const prsMap = contrib.prs || {};
+      const issuesMap = contrib.issues || {};
+      let data = null;
+      if (type === 'prs') data = prsMap[key] || null;
+      else data = issuesMap[key] || null;
+
+      contribBodyEl.innerHTML = '';
+      if (!data) {
+        contribTitleEl.textContent = '—';
+        contribMetaEl.textContent = '';
+        return;
+      }
+
+      if (type === 'prs') {
+        const issuePart = data.issue_refs && data.issue_refs.length ? ` · issues: ${data.issue_refs.join(', ')}` : '';
+        contribTitleEl.textContent = `PR #${data.number} — ${data.title || ''}`;
+        contribMetaEl.textContent = `Participants: ${data.participants ? data.participants.length : 0}${issuePart}`;
+      } else {
+        contribTitleEl.textContent = `Issue #${data.issue_number}`;
+        contribMetaEl.textContent = `Referenced PRs: ${data.prs_count} · Participants: ${data.participants ? data.participants.length : 0}`;
+      }
+
+      const parts = data.participants || [];
+      if (!parts.length) {
+        contribBodyEl.innerHTML = `<tr><td colspan="6" class="meta">No embedded contribution data for this item.</td></tr>`;
+        return;
+      }
+
+      parts.forEach((p) => {
+        const flags = [];
+        if (p.requested_flag) flags.push('Requested');
+        if (p.assigned_flag) flags.push('Assigned');
+        const commentCounts =
+          (p.comment_issue_count || 0) + ' issue / ' + (p.comment_line_count || 0) + ' line';
+        const total = p.total_contrib != null ? p.total_contrib : '—';
+        const ship = p.shipping_part != null ? p.shipping_part : '—';
+        const rev = p.review_part != null ? p.review_part : '—';
+        const comm = p.comment_part != null ? p.comment_part : '—';
+        const flagStr = flags.length ? flags.join(', ') : '—';
+        contribBodyEl.innerHTML += `
+          <tr>
+            <td>${escHtml(p.login)}</td>
+            <td class="num">${escHtml(total)}</td>
+            <td class="num">${escHtml(ship)}</td>
+            <td class="num">${escHtml(rev)}</td>
+            <td class="num" title="${escHtml(commentCounts)}">${escHtml(comm)}</td>
+            <td>${escHtml(flagStr)}</td>
+          </tr>
+        `;
+      });
+    }
+
+    function rebuildContribSelect() {
+      if (!contribTypeEl || !contribSelEl || !contribQEl) return;
+      const type = contribTypeEl.value;
+      const q = (contribQEl.value || '').trim().toLowerCase();
+      contribSelEl.innerHTML = '';
+
+      const prsMap = contrib.prs || {};
+      const issuesMap = contrib.issues || {};
+
+      let entries = [];
+      if (type === 'prs') {
+        entries = Object.keys(prsMap).map((k) => ({ key: k, data: prsMap[k] }));
+        if (q) {
+          entries = entries.filter((e) => {
+            const numStr = String(e.data.number);
+            return (
+              numStr.includes(q) ||
+              (e.data.title || '').toLowerCase().includes(q) ||
+              (e.data.issue_refs || []).some((x) => String(x).includes(q))
+            );
+          });
+        }
+        entries.sort((a, b) => (b.data.pr_value || 0) - (a.data.pr_value || 0));
+        entries.slice(0, 60).forEach((e) => {
+          const issueRefs = e.data.issue_refs && e.data.issue_refs.length ? ` (issues: ${e.data.issue_refs.join(', ')})` : '';
+          const opt = document.createElement('option');
+          opt.value = e.key;
+          opt.textContent = `PR #${e.data.number}${issueRefs}`;
+          contribSelEl.appendChild(opt);
+        });
+      } else {
+        entries = Object.keys(issuesMap).map((k) => ({ key: k, data: issuesMap[k] }));
+        if (q) {
+          entries = entries.filter((e) => String(e.data.issue_number).includes(q));
+        }
+        entries.sort((a, b) => (b.data.prs_count || 0) - (a.data.prs_count || 0));
+        entries.slice(0, 60).forEach((e) => {
+          const opt = document.createElement('option');
+          opt.value = e.key;
+          opt.textContent = `Issue #${e.data.issue_number} (PRs: ${e.data.prs_count})`;
+          contribSelEl.appendChild(opt);
+        });
+      }
+
+      const countTotal = type === 'prs' ? Object.keys(prsMap).length : Object.keys(issuesMap).length;
+      contribHintEl.textContent = `Showing up to 60 ${type === 'prs' ? 'PRs' : 'issues'} from embedded top subset (${countTotal} total embedded).`;
+
+      const first = contribSelEl.options[0];
+      if (first) {
+        contribSelEl.value = first.value;
+        renderContribTable(type, first.value);
+      } else {
+        contribTitleEl.textContent = '—';
+        contribMetaEl.textContent = '';
+      }
+    }
+
+    if (contribTypeEl && contribSelEl) {
+      contribTypeEl.addEventListener('change', rebuildContribSelect);
+      contribQEl.addEventListener('input', rebuildContribSelect);
+      contribSelEl.addEventListener('change', () => {
+        renderContribTable(contribTypeEl.value, contribSelEl.value);
+      });
+      rebuildContribSelect();
+    }
 
     // Tab switching
     document.querySelectorAll('.tab').forEach((btn) => {

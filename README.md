@@ -69,6 +69,12 @@ Runs **fetch** then **compute**. `--out DIR` is accepted as an alias for `--data
 | `--fetch-merge-checks` | Check runs on **`merge_commit_sha`** (merge CI %) |
 | `--fetch-actions` | Workflow runs sample (attributed to triggering actor) |
 | `--skip-open` / `--skip-created` | Skip open/created searches (faster, fewer metrics) |
+| `--resume` | Reuse existing `data/raw/search_*.json` and per-PR JSON; only fetch **missing** merged/open PRs, merge checks, etc. (same `--repo` / `--days` as before) |
+| `--checkpoint-every N` | While listing merged PRs, rewrite `pulls_merged.json` and sidecars every **N** PRs (default **25**) so a crash leaves recoverable files |
+
+**Resuming:** If a run stops (rate limit, network, Ctrl+C), run the **same** `fetch_data.py` command again with **`--resume`** added. Search results are written **after each time slice**; merged-PR progress is checkpointed every `--checkpoint-every` PRs even without `--resume`, so you can often resume with `--resume` as long as `data/raw/` still has partial JSON.
+
+To **start over** from scratch, remove or rename `data/raw/` (or delete the specific `search_*.json` / `pulls_merged.json` files you want refreshed) and run **without** `--resume`.
 
 Full metric definitions: **[docs/METRICS.md](docs/METRICS.md)**.
 
@@ -91,6 +97,11 @@ The table headers have hover tooltips describing what each metric means (includi
 ### `performance_band`
 
 The exported tables include `performance_band` (High/Medium/Low) derived from tertiles on `full_stack_score` within the computed window. This is for scheduling prioritization, not an intrinsic “quality” score.
+
+## Build time context
+
+- Focused assignment work: about `1:08:38`
+- Full `fetch_data` run (GitHub data pull through completion of merged-PR fetching, including optional files/reviews/collaboration/checks): on the order of **~14 hours** wall clock (rate limits, checkpoints, large repo)
 
 ## Hosting (GitHub Pages)
 

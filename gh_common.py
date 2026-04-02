@@ -115,7 +115,12 @@ def search_time_sliced(
     range_start: date,
     range_end: date,
     slice_days: int,
+    checkpoint_path: Path | None = None,
 ) -> list[dict[str, Any]]:
+    """
+    If checkpoint_path is set, writes the accumulated unique items to that file after each
+    time slice so a long search can be resumed from partial results if the process stops.
+    """
     seen: dict[int, dict[str, Any]] = {}
     d = range_start
     while d <= range_end:
@@ -133,6 +138,12 @@ def search_time_sliced(
             f"  {date_field} {d}..{slice_end}: +{len(items)} (unique {len(seen)})",
             file=sys.stderr,
         )
+        if checkpoint_path is not None:
+            checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
+            checkpoint_path.write_text(
+                json.dumps(list(seen.values()), indent=2),
+                encoding="utf-8",
+            )
         d = slice_end + timedelta(days=1)
     return list(seen.values())
 
@@ -396,6 +407,7 @@ def summarize_collaboration_on_pull(
     partners: set[str] = set()
 
     ic_other_after = 0
+    issue_by_login: dict[str, int] = defaultdict(int)
     for c in issue_comments:
         u = (c.get("user") or {}).get("login")
         if is_bot_login(u) or not u or u == author:
@@ -404,9 +416,11 @@ def summarize_collaboration_on_pull(
         if pr_open and ct and ct <= pr_open:
             continue
         ic_other_after += 1
+        issue_by_login[u] += 1
         partners.add(u)
 
     rc_other_after = 0
+    line_by_login: dict[str, int] = defaultdict(int)
     for c in line_comments:
         u = (c.get("user") or {}).get("login")
         if is_bot_login(u) or not u or u == author:
@@ -415,6 +429,7 @@ def summarize_collaboration_on_pull(
         if pr_open and ct and ct <= pr_open:
             continue
         rc_other_after += 1
+        line_by_login[u] += 1
         partners.add(u)
 
     reviewers = pull.get("requested_reviewers") or []
@@ -427,6 +442,8 @@ def summarize_collaboration_on_pull(
     return {
         "issue_comments_from_others_after_open": ic_other_after,
         "review_line_comments_from_others_after_open": rc_other_after,
+        "issue_comments_by_login_after_open": dict(issue_by_login),
+        "review_line_comments_by_login_after_open": dict(line_by_login),
         "requested_reviewers_at_fetch": req_count,
         "assignees_non_author": assign_non_author,
         "distinct_partner_logins": sorted(partners),
@@ -981,6 +998,225 @@ def compute_engineer_metrics(
         },
         "top_by_full_stack_score": rows[:20],
     }
+
+    # Build a lightweight "contributions to a PR / issue" dataset for the UI.
+    # To keep the static HTML small, we only include the top PRs by PR value (shipping + reviews + collaboration)
+    # and then aggregate their linked issues.
+    def _comment_part_score(issue_count: int, line_count: int) -> float:
+        return round(math.log1p(issue_count) * 2.2 + math.log1p(line_count) * 1.8, 6)
+
+    pr_contribs_all: list[dict[str, Any]] = []
+    for pull in pulls_merged:
+        author = (pull.get("user") or {}).get("login")
+        if is_bot_login(author):
+            continue
+        num = int(pull.get("number"))
+        title = pull.get("title") or ""
+        files = files_int.get(num)
+        pr_shipping, _ = shipping_impact_score(pull, files)
+
+        close_text = (pull.get("body") or "") + "\n" + (pull.get("title") or "")
+        issue_refs = sorted(parse_closing_issue_refs(close_text))
+
+        # participants[login] = tracked per-user contribution components
+        participants: dict[str, dict[str, Any]] = {}
+
+        def ensure(login: str) -> dict[str, Any]:
+            if login not in participants:
+                participants[login] = {
+                    "login": login,
+                    "shipping_part": 0.0,
+                    "review_part": 0.0,
+                    "comment_issue_count": 0,
+                    "comment_line_count": 0,
+                    "comment_part": 0.0,
+                    "requested_flag": False,
+                    "assigned_flag": False,
+                    "requested_part": 0.0,
+                    "assigned_part": 0.0,
+                    "total_contrib": 0.0,
+                }
+            return participants[login]
+
+        # Author gets shipping credit for the PR.
+        a = ensure(author)
+        a["shipping_part"] = float(pr_shipping)
+
+        # Reviews (distinct reviewer-PR pair)
+        if num in reviews_int:
+            seen_pairs: set[str] = set()
+            for rv in reviews_int.get(num, []) or []:
+                rv_user = (rv.get("user") or {}).get("login")
+                if is_bot_login(rv_user) or not rv_user:
+                    continue
+                if rv_user in seen_pairs:
+                    continue
+                if rv_user == author:
+                    # Author review of their own PR usually doesn't matter for "contribution to ship".
+                    continue
+                seen_pairs.add(rv_user)
+                state = (rv.get("state") or "").upper()
+                w = 0.35
+                if state == "APPROVED":
+                    w += 0.65
+                if state and state not in ("COMMENTED", "APPROVED", "CHANGES_REQUESTED"):
+                    w = 0.25
+                rr = ensure(rv_user)
+                rr["review_part"] += w
+
+        # Collaboration comments after PR open (if per-login maps exist, use them; otherwise fall back)
+        col = collaboration_by_pr.get(str(num), {}) or {}
+        issue_by_login = col.get("issue_comments_by_login_after_open") or None
+        line_by_login = col.get("review_line_comments_by_login_after_open") or None
+
+        distinct_partners = col.get("distinct_partner_logins") or []
+        partners = [p for p in distinct_partners if p and not is_bot_login(p)]
+
+        if issue_by_login and isinstance(issue_by_login, dict):
+            line_by_login = line_by_login if isinstance(line_by_login, dict) else {}
+            keys = set(issue_by_login.keys()) | set(line_by_login.keys())
+            for login in keys:
+                if is_bot_login(login):
+                    continue
+                ic = int(issue_by_login.get(login) or 0)
+                lc = int(line_by_login.get(login) or 0)
+                if ic == 0 and lc == 0:
+                    continue
+                cp = ensure(login)
+                cp["comment_issue_count"] += ic
+                cp["comment_line_count"] += lc
+                cp["comment_part"] += _comment_part_score(ic, lc)
+        else:
+            # Approximate distribution if per-login counts are not available.
+            ic_total = int(col.get("issue_comments_from_others_after_open") or 0)
+            lc_total = int(col.get("review_line_comments_from_others_after_open") or 0)
+            k = max(1, len(partners))
+            for login in partners:
+                ic = int(round(ic_total / k))
+                lc = int(round(lc_total / k))
+                if ic == 0 and lc == 0:
+                    continue
+                cp = ensure(login)
+                cp["comment_issue_count"] += ic
+                cp["comment_line_count"] += lc
+                cp["comment_part"] += _comment_part_score(ic, lc)
+
+        # Requested reviewers / assignees snapshot (flags + tiny part)
+        requested_reviewers = pull.get("requested_reviewers") or []
+        if isinstance(requested_reviewers, list):
+            for rr in requested_reviewers:
+                rl = rr.get("login") if isinstance(rr, dict) else None
+                if rl and rl != author and not is_bot_login(rl):
+                    p = ensure(rl)
+                    p["requested_flag"] = True
+                    p["requested_part"] += 0.2
+        assignees = pull.get("assignees") or []
+        if isinstance(assignees, list):
+            for a2 in assignees:
+                al = a2.get("login") if isinstance(a2, dict) else None
+                if al and al != author and not is_bot_login(al):
+                    p = ensure(al)
+                    p["assigned_flag"] = True
+                    p["assigned_part"] += 0.1
+
+        # finalize totals
+        for login, p in participants.items():
+            p["total_contrib"] = round(
+                float(p.get("shipping_part") or 0.0)
+                + float(p.get("review_part") or 0.0)
+                + float(p.get("comment_part") or 0.0)
+                + float(p.get("requested_part") or 0.0)
+                + float(p.get("assigned_part") or 0.0),
+                6,
+            )
+
+        # Build ordered participant list
+        participant_rows = sorted(
+            participants.values(), key=lambda x: x.get("total_contrib") or 0.0, reverse=True
+        )
+        pr_value = sum(float(p.get("total_contrib") or 0.0) for p in participant_rows)
+
+        pr_contribs_all.append(
+            {
+                "number": num,
+                "title": title,
+                "issue_refs": issue_refs,
+                "pr_value": round(pr_value, 6),
+                "participants": participant_rows,
+            }
+        )
+
+    pr_contribs_all.sort(key=lambda x: x.get("pr_value") or 0.0, reverse=True)
+    TOP_PRs_FOR_UI = 60
+    selected_prs = pr_contribs_all[:TOP_PRs_FOR_UI]
+    selected_pr_numbers = {p["number"] for p in selected_prs}
+
+    issues_map: dict[int, dict[str, Any]] = {}
+    for pr in selected_prs:
+        for issue in pr.get("issue_refs") or []:
+            issue_entry = issues_map.setdefault(
+                int(issue),
+                {
+                    "issue_number": int(issue),
+                    "prs_count": 0,
+                    "participants": {},
+                },
+            )
+            issue_entry["prs_count"] += 1
+            for part in pr.get("participants") or []:
+                login = part.get("login")
+                if not login:
+                    continue
+                pe = issue_entry["participants"].setdefault(
+                    login,
+                    {
+                        "login": login,
+                        "shipping_part": 0.0,
+                        "review_part": 0.0,
+                        "comment_issue_count": 0,
+                        "comment_line_count": 0,
+                        "comment_part": 0.0,
+                        "requested_part": 0.0,
+                        "assigned_part": 0.0,
+                        "total_contrib": 0.0,
+                    },
+                )
+                for k in [
+                    "shipping_part",
+                    "review_part",
+                    "comment_issue_count",
+                    "comment_line_count",
+                    "comment_part",
+                    "requested_part",
+                    "assigned_part",
+                ]:
+                    pe[k] = float(pe.get(k) or 0.0) + float(part.get(k) or 0.0)
+
+    # finalize issue participant lists
+    issues_out: dict[str, Any] = {}
+    for issue_num, entry in issues_map.items():
+        parts_dict = entry.get("participants") or {}
+        participant_rows = []
+        for login, pe in parts_dict.items():
+            pe["total_contrib"] = round(
+                float(pe.get("shipping_part") or 0.0)
+                + float(pe.get("review_part") or 0.0)
+                + float(pe.get("comment_part") or 0.0)
+                + float(pe.get("requested_part") or 0.0)
+                + float(pe.get("assigned_part") or 0.0),
+                6,
+            )
+            participant_rows.append(pe)
+        participant_rows.sort(key=lambda x: x.get("total_contrib") or 0.0, reverse=True)
+        issues_out[str(issue_num)] = {
+            "issue_number": issue_num,
+            "prs_count": entry.get("prs_count") or 0,
+            "participants": participant_rows,
+        }
+
+    prs_out: dict[str, Any] = {str(pr["number"]): pr for pr in selected_prs}
+    contrib = {"prs": prs_out, "issues": issues_out}
+
     bundle = {
         "meta": {
             "generated_at": summary["generated_at"],
@@ -991,6 +1227,7 @@ def compute_engineer_metrics(
             "totals": totals,
         },
         "engineers": rows,
+        "contrib": contrib,
     }
     return rows, summary, bundle, timeline_export
 
