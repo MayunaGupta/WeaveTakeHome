@@ -11,6 +11,7 @@ import os
 import re
 import statistics
 import sys
+from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
@@ -490,7 +491,12 @@ def report_template_path() -> Path:
     return Path(__file__).resolve().parent / "report" / "template.html"
 
 
-def build_report(out: Path, repo: str, bundle: dict[str, Any]) -> None:
+def build_report(
+    out: Path,
+    repo: str,
+    bundle: dict[str, Any],
+    timeline: dict[str, Any] | None = None,
+) -> None:
     tpl_path = report_template_path()
     if not tpl_path.is_file():
         print(f"No template at {tpl_path}; skip report.", file=sys.stderr)
@@ -500,9 +506,22 @@ def build_report(out: Path, repo: str, bundle: dict[str, Any]) -> None:
     payload = json.dumps(bundle, ensure_ascii=False)
     payload = payload.replace("</", "<\\/")
     html = html.replace("__PAYLOAD__", payload)
-    report_path = out / "index.html"
-    report_path.write_text(html, encoding="utf-8")
-    print(f"Wrote hostable report: {report_path}", file=sys.stderr)
+    tl = timeline or {
+        "authors": {},
+        "note": "",
+        "window_start": "",
+        "window_end": "",
+        "window_calendar_days": 0,
+    }
+    timeline_json = json.dumps(tl, ensure_ascii=False)
+    timeline_json = timeline_json.replace("</", "<\\/")
+    html = html.replace("__TIMELINE_PAYLOAD__", timeline_json)
+
+    docs_index = Path(__file__).resolve().parent / "docs" / "index.html"
+    for dest in (out / "index.html", docs_index):
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text(html, encoding="utf-8")
+    print(f"Wrote report: {out / 'index.html'} and {docs_index}", file=sys.stderr)
 
 
 def merge_check_success_pct(a: AuthorAgg) -> float | None:
@@ -591,6 +610,148 @@ def _median_days(cycle: list[float]) -> float | None:
     return round(float(statistics.median(cycle)), 2)
 
 
+def _longest_consecutive_streak(sorted_dates: list[date]) -> int:
+    if not sorted_dates:
+        return 0
+    best = 1
+    cur = 1
+    for i in range(1, len(sorted_dates)):
+        if (sorted_dates[i] - sorted_dates[i - 1]).days == 1:
+            cur += 1
+            best = max(best, cur)
+        else:
+            cur = 1
+    return best
+
+
+def _streak_ending_on_last_merge_day(
+    sorted_dates: list[date],
+    active: set[date],
+    window_start: date,
+) -> int:
+    """Consecutive calendar days with ≥1 merge, walking back from last merge day."""
+    if not sorted_dates:
+        return 0
+    d = sorted_dates[-1]
+    n = 0
+    while d >= window_start and d in active:
+        n += 1
+        d -= timedelta(days=1)
+    return n
+
+
+def _max_gap_calendar_days(
+    sorted_dates: list[date],
+    window_start: date,
+    window_end: date,
+) -> int:
+    """Longest idle span (no merges) inside the window, including edges."""
+    if not sorted_dates:
+        return (window_end - window_start).days
+    g = (sorted_dates[0] - window_start).days
+    for i in range(1, len(sorted_dates)):
+        g = max(g, (sorted_dates[i] - sorted_dates[i - 1]).days - 1)
+    g = max(g, (window_end - sorted_dates[-1]).days)
+    return g
+
+
+def build_merge_timelines(
+    pulls_merged: list[dict[str, Any]],
+    window_start: date,
+    window_end: date,
+) -> tuple[dict[str, dict[str, Any]], dict[str, Any], dict[str, Any]]:
+    """
+    Per-author merge-day timelines (UTC calendar dates from merged_at).
+    Returns (row_fields_by_login, export_blob_for_json, empty_row_template).
+    """
+    daily: dict[str, dict[date, int]] = defaultdict(lambda: defaultdict(int))
+    for pull in pulls_merged:
+        user = (pull.get("user") or {}).get("login")
+        if is_bot_login(user):
+            continue
+        ma = pull.get("merged_at")
+        if not ma:
+            continue
+        dt = parse_github_dt(ma)
+        if not dt:
+            continue
+        day = dt.date()
+        if day < window_start or day > window_end:
+            continue
+        daily[user][day] += 1
+
+    window_span = max((window_end - window_start).days + 1, 1)
+    row_fields: dict[str, dict[str, Any]] = {}
+    authors_export: dict[str, Any] = {}
+
+    for login, day_counts in daily.items():
+        active_days = {d for d, c in day_counts.items() if c >= 1}
+        sorted_d = sorted(active_days)
+        productive = len(sorted_d)
+        longest = _longest_consecutive_streak(sorted_d)
+        latest_streak = _streak_ending_on_last_merge_day(sorted_d, active_days, window_start)
+        max_gap = _max_gap_calendar_days(sorted_d, window_start, window_end)
+        last_d = sorted_d[-1]
+        first_d = sorted_d[0]
+        days_since = (window_end - last_d).days
+
+        week_merges: dict[tuple[int, int], int] = defaultdict(int)
+        for d, c in day_counts.items():
+            iso = d.isocalendar()
+            week_merges[(iso[0], iso[1])] += c
+        best_week = max(week_merges.values()) if week_merges else 0
+
+        active_pct = round(100.0 * productive / window_span, 1)
+
+        row_fields[login] = {
+            "tl_productive_days": productive,
+            "tl_longest_streak_days": longest,
+            "tl_latest_streak_days": latest_streak,
+            "tl_max_gap_days": max_gap,
+            "tl_first_merge_date": first_d.isoformat(),
+            "tl_last_merge_date": last_d.isoformat(),
+            "tl_days_since_last_merge": days_since,
+            "tl_best_week_merges": best_week,
+            "tl_active_day_pct": active_pct,
+        }
+        authors_export[login] = {
+            "daily_merges": {d.isoformat(): day_counts[d] for d in sorted(day_counts.keys())},
+            "merge_dates_sorted": [d.isoformat() for d in sorted_d],
+            "productive_days": productive,
+            "longest_streak_days": longest,
+            "latest_streak_days": latest_streak,
+            "max_gap_days": max_gap,
+            "first_merge_date": first_d.isoformat(),
+            "last_merge_date": last_d.isoformat(),
+            "days_since_last_merge": days_since,
+            "best_week_merges": best_week,
+            "active_day_pct": active_pct,
+        }
+
+    empty_row = {
+        "tl_productive_days": 0,
+        "tl_longest_streak_days": 0,
+        "tl_latest_streak_days": 0,
+        "tl_max_gap_days": (window_end - window_start).days,
+        "tl_first_merge_date": None,
+        "tl_last_merge_date": None,
+        "tl_days_since_last_merge": None,
+        "tl_best_week_merges": 0,
+        "tl_active_day_pct": 0.0,
+    }
+    export = {
+        "window_start": window_start.isoformat(),
+        "window_end": window_end.isoformat(),
+        "window_calendar_days": window_span,
+        "note": (
+            "Productive day = calendar day (UTC) with ≥1 merge. "
+            "Streaks are consecutive such days. latest_streak walks back from last merge day."
+        ),
+        "authors": authors_export,
+    }
+    return row_fields, export, empty_row
+
+
 def compute_engineer_metrics(
     *,
     repo: str,
@@ -606,7 +767,10 @@ def compute_engineer_metrics(
     workflow_runs: list[dict[str, Any]],
     collaboration_by_pr: dict[str, dict[str, Any]],
     merge_checks_by_pr: dict[str, dict[str, int]],
-) -> tuple[list[dict[str, Any]], dict[str, Any], dict[str, Any]]:
+) -> tuple[list[dict[str, Any]], dict[str, Any], dict[str, Any], dict[str, Any]]:
+    timeline_by_login, timeline_export, timeline_empty = build_merge_timelines(
+        pulls_merged, window_start, window_end
+    )
     by_author: dict[str, AuthorAgg] = {}
     pr_author: dict[int, str] = {}
     files_int: dict[int, list] = {int(k): v for k, v in files_by_pr.items()}
@@ -743,8 +907,8 @@ def compute_engineer_metrics(
         mcpct = merge_check_success_pct(a)
         full_stack = round(combined + dscore + cscore, 3)
         partners_n = len(a.collab_partners)
-        rows.append(
-            {
+        tl = timeline_by_login.get(a.login, timeline_empty)
+        row = {
                 "login": a.login,
                 "combined_score": round(combined, 3),
                 "delivery_score": dscore,
@@ -789,8 +953,9 @@ def compute_engineer_metrics(
                 "open_wip_commits": a.open_commits,
                 "open_wip_discussion": a.open_discussion,
                 "note": engineer_note(a),
-            }
-        )
+        }
+        row.update(tl)
+        rows.append(row)
 
     rows.sort(key=lambda r: (r.get("full_stack_score") or 0), reverse=True)
 
@@ -812,6 +977,7 @@ def compute_engineer_metrics(
             "full_stack_score": "combined_score + delivery_score + collaboration_score.",
             "collaboration_score": "Teammate issue + line comments after PR open, partner breadth, review requests/assignees (see raw collaboration_by_pr).",
             "merge_rate_pct": "merged_prs / prs_opened_in_window (approximate).",
+            "timeline": "See docs/METRICS.md — merge-day streaks & gaps (tl_* columns, timeline_by_author.json).",
         },
         "top_by_full_stack_score": rows[:20],
     }
@@ -826,7 +992,7 @@ def compute_engineer_metrics(
         },
         "engineers": rows,
     }
-    return rows, summary, bundle
+    return rows, summary, bundle, timeline_export
 
 
 def load_json(path: Path, default: Any) -> Any:

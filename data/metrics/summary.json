@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-02T03:58:47.845887+00:00",
+  "generated_at": "2026-04-02T06:49:14.200705+00:00",
   "repo": "PostHog/posthog",
   "window_days": 20,
   "window_start": "2026-03-12",
@@ -14,7 +14,8 @@
   "definitions": {
     "full_stack_score": "combined_score + delivery_score + collaboration_score.",
     "collaboration_score": "Teammate issue + line comments after PR open, partner breadth, review requests/assignees (see raw collaboration_by_pr).",
-    "merge_rate_pct": "merged_prs / prs_opened_in_window (approximate)."
+    "merge_rate_pct": "merged_prs / prs_opened_in_window (approximate).",
+    "timeline": "See docs/METRICS.md \u2014 merge-day streaks & gaps (tl_* columns, timeline_by_author.json)."
   },
   "top_by_full_stack_score": [
     {
@@ -61,7 +62,17 @@
       "open_wip_files": 34,
       "open_wip_commits": 22,
       "open_wip_discussion": 9,
-      "note": "~0.7d median time to merge; high iteration (commits/PR); strong review throughput; active WIP + shipping; tests/e2e in shipped diffs; pulls others in after open"
+      "note": "~0.7d median time to merge; high iteration (commits/PR); strong review throughput; active WIP + shipping; tests/e2e in shipped diffs; pulls others in after open",
+      "tl_productive_days": 14,
+      "tl_longest_streak_days": 5,
+      "tl_latest_streak_days": 2,
+      "tl_max_gap_days": 2,
+      "tl_first_merge_date": "2026-03-12",
+      "tl_last_merge_date": "2026-03-31",
+      "tl_days_since_last_merge": 1,
+      "tl_best_week_merges": 10,
+      "tl_active_day_pct": 66.7,
+      "performance_band": "High"
     },
     {
       "login": "webjunkie",
@@ -107,7 +118,17 @@
       "open_wip_files": 255,
       "open_wip_commits": 54,
       "open_wip_discussion": 83,
-      "note": "~0.29d median time to merge; high iteration (commits/PR); strong review throughput; active WIP + shipping; tests/e2e in shipped diffs; high green rate on merge CI; pulls others in after open"
+      "note": "~0.29d median time to merge; high iteration (commits/PR); strong review throughput; active WIP + shipping; tests/e2e in shipped diffs; high green rate on merge CI; pulls others in after open",
+      "tl_productive_days": 15,
+      "tl_longest_streak_days": 5,
+      "tl_latest_streak_days": 3,
+      "tl_max_gap_days": 2,
+      "tl_first_merge_date": "2026-03-12",
+      "tl_last_merge_date": "2026-04-01",
+      "tl_days_since_last_merge": 0,
+      "tl_best_week_merges": 25,
+      "tl_active_day_pct": 71.4,
+      "performance_band": "High"
     },
     {
       "login": "MattPua",
@@ -153,7 +174,17 @@
       "open_wip_files": 34,
       "open_wip_commits": 12,
       "open_wip_discussion": 17,
-      "note": "~0.72d median time to merge; high iteration (commits/PR); strong review throughput; active WIP + shipping; closes tracked work (issues); tests/e2e in shipped diffs; pulls others in after open; broad collaboration network"
+      "note": "~0.72d median time to merge; high iteration (commits/PR); strong review throughput; active WIP + shipping; closes tracked work (issues); tests/e2e in shipped diffs; pulls others in after open; broad collaboration network",
+      "tl_productive_days": 15,
+      "tl_longest_streak_days": 5,
+      "tl_latest_streak_days": 3,
+      "tl_max_gap_days": 2,
+      "tl_first_merge_date": "2026-03-12",
+      "tl_last_merge_date": "2026-04-01",
+      "tl_days_since_last_merge": 0,
+      "tl_best_week_merges": 22,
+      "tl_active_day_pct": 71.4,
+      "performance_band": "High"
     },
     {
       "login": "haacked",
@@ -199,7 +230,17 @@
       "open_wip_files": 3,
       "open_wip_commits": 6,
       "open_wip_discussion": 39,
-      "note": "~0.7d median time to merge; strong review throughput; active WIP + shipping; tests/e2e in shipped diffs; high green rate on merge CI; pulls others in after open; broad collaboration network"
+      "note": "~0.7d median time to merge; strong review throughput; active WIP + shipping; tests/e2e in shipped diffs; high green rate on merge CI; pulls others in after open; broad collaboration network",
+      "tl_productive_days": 18,
+      "tl_longest_streak_days": 6,
+      "tl_latest_streak_days": 3,
+      "tl_max_gap_days": 1,
+      "tl_first_merge_date": "2026-03-12",
+      "tl_last_merge_date": "2026-04-01",
+      "tl_days_since_last_merge": 0,
+      "tl_best_week_merges": 18,
+      "tl_active_day_pct": 85.7,
+      "performance_band": "High"
     },
     {
       "login": "rafaeelaudibert",
@@ -245,7 +286,17 @@
       "open_wip_files": 178,
       "open_wip_commits": 17,
       "open_wip_discussion": 66,
-      "note": "~0.07d median time to merge; strong review throughput; frequent CI activity; active WIP + shipping; tests/e2e in shipped diffs; pulls others in after open; broad collaboration network"
+      "note": "~0.07d median time to merge; strong review throughput; frequent CI activity; active WIP + shipping; tests/e2e in shipped diffs; pulls others in after open; broad collaboration network",
+      "tl_productive_days": 11,
+      "tl_longest_streak_days": 3,
+      "tl_latest_streak_days": 3,
+      "tl_max_gap_days": 2,
+      "tl_first_merge_date": "2026-03-13",
+      "tl_last_merge_date": "2026-04-01",
+      "tl_days_since_last_merge": 0,
+      "tl_best_week_merges": 9,
+      "tl_active_day_pct": 52.4,
+      "performance_band": "High"
     },
     {
       "login": "sampennington",
@@ -291,7 +342,17 @@
       "open_wip_files": 79,
       "open_wip_commits": 22,
       "open_wip_discussion": 31,
-      "note": "~0.27d median time to merge; high iteration (commits/PR); strong review throughput; active WIP + shipping; tests/e2e in shipped diffs; pulls others in after open"
+      "note": "~0.27d median time to merge; high iteration (commits/PR); strong review throughput; active WIP + shipping; tests/e2e in shipped diffs; pulls others in after open",
+      "tl_productive_days": 14,
+      "tl_longest_streak_days": 5,
+      "tl_latest_streak_days": 1,
+      "tl_max_gap_days": 2,
+      "tl_first_merge_date": "2026-03-13",
+      "tl_last_merge_date": "2026-04-01",
+      "tl_days_since_last_merge": 0,
+      "tl_best_week_merges": 20,
+      "tl_active_day_pct": 66.7,
+      "performance_band": "High"
     },
     {
       "login": "dmarticus",
@@ -337,7 +398,17 @@
       "open_wip_files": 30,
       "open_wip_commits": 38,
       "open_wip_discussion": 50,
-      "note": "~1.05d median time to merge; high iteration (commits/PR); strong review throughput; frequent CI activity; active WIP + shipping; closes tracked work (issues); tests/e2e in shipped diffs; pulls others in after open"
+      "note": "~1.05d median time to merge; high iteration (commits/PR); strong review throughput; frequent CI activity; active WIP + shipping; closes tracked work (issues); tests/e2e in shipped diffs; pulls others in after open",
+      "tl_productive_days": 13,
+      "tl_longest_streak_days": 5,
+      "tl_latest_streak_days": 3,
+      "tl_max_gap_days": 3,
+      "tl_first_merge_date": "2026-03-12",
+      "tl_last_merge_date": "2026-04-01",
+      "tl_days_since_last_merge": 0,
+      "tl_best_week_merges": 17,
+      "tl_active_day_pct": 61.9,
+      "performance_band": "High"
     },
     {
       "login": "Gilbert09",
@@ -383,7 +454,17 @@
       "open_wip_files": 13,
       "open_wip_commits": 14,
       "open_wip_discussion": 23,
-      "note": "~0.68d median time to merge; high iteration (commits/PR); strong review throughput; active WIP + shipping; tests/e2e in shipped diffs; pulls others in after open"
+      "note": "~0.68d median time to merge; high iteration (commits/PR); strong review throughput; active WIP + shipping; tests/e2e in shipped diffs; pulls others in after open",
+      "tl_productive_days": 9,
+      "tl_longest_streak_days": 5,
+      "tl_latest_streak_days": 1,
+      "tl_max_gap_days": 5,
+      "tl_first_merge_date": "2026-03-12",
+      "tl_last_merge_date": "2026-03-31",
+      "tl_days_since_last_merge": 1,
+      "tl_best_week_merges": 18,
+      "tl_active_day_pct": 42.9,
+      "performance_band": "High"
     },
     {
       "login": "sakce",
@@ -429,7 +510,17 @@
       "open_wip_files": 75,
       "open_wip_commits": 23,
       "open_wip_discussion": 40,
-      "note": "~0.94d median time to merge; strong review throughput; active WIP + shipping; tests/e2e in shipped diffs; pulls others in after open; broad collaboration network"
+      "note": "~0.94d median time to merge; strong review throughput; active WIP + shipping; tests/e2e in shipped diffs; pulls others in after open; broad collaboration network",
+      "tl_productive_days": 13,
+      "tl_longest_streak_days": 3,
+      "tl_latest_streak_days": 3,
+      "tl_max_gap_days": 5,
+      "tl_first_merge_date": "2026-03-12",
+      "tl_last_merge_date": "2026-04-01",
+      "tl_days_since_last_merge": 0,
+      "tl_best_week_merges": 14,
+      "tl_active_day_pct": 61.9,
+      "performance_band": "High"
     },
     {
       "login": "thmsobrmlr",
@@ -475,7 +566,17 @@
       "open_wip_files": 44,
       "open_wip_commits": 27,
       "open_wip_discussion": 33,
-      "note": "~0.49d median time to merge; high iteration (commits/PR); strong review throughput; active WIP + shipping; tests/e2e in shipped diffs; high green rate on merge CI"
+      "note": "~0.49d median time to merge; high iteration (commits/PR); strong review throughput; active WIP + shipping; tests/e2e in shipped diffs; high green rate on merge CI",
+      "tl_productive_days": 12,
+      "tl_longest_streak_days": 4,
+      "tl_latest_streak_days": 2,
+      "tl_max_gap_days": 3,
+      "tl_first_merge_date": "2026-03-12",
+      "tl_last_merge_date": "2026-04-01",
+      "tl_days_since_last_merge": 0,
+      "tl_best_week_merges": 10,
+      "tl_active_day_pct": 57.1,
+      "performance_band": "High"
     },
     {
       "login": "Piccirello",
@@ -521,7 +622,17 @@
       "open_wip_files": 8,
       "open_wip_commits": 1,
       "open_wip_discussion": 2,
-      "note": "~0.15d median time to merge; strong review throughput; frequent CI activity; active WIP + shipping; tests/e2e in shipped diffs; high green rate on merge CI; pulls others in after open; broad collaboration network"
+      "note": "~0.15d median time to merge; strong review throughput; frequent CI activity; active WIP + shipping; tests/e2e in shipped diffs; high green rate on merge CI; pulls others in after open; broad collaboration network",
+      "tl_productive_days": 11,
+      "tl_longest_streak_days": 5,
+      "tl_latest_streak_days": 1,
+      "tl_max_gap_days": 4,
+      "tl_first_merge_date": "2026-03-12",
+      "tl_last_merge_date": "2026-04-01",
+      "tl_days_since_last_merge": 0,
+      "tl_best_week_merges": 9,
+      "tl_active_day_pct": 52.4,
+      "performance_band": "High"
     },
     {
       "login": "VojtechBartos",
@@ -567,7 +678,17 @@
       "open_wip_files": 170,
       "open_wip_commits": 58,
       "open_wip_discussion": 96,
-      "note": "~1.89d median time to merge; high iteration (commits/PR); strong review throughput; active WIP + shipping; tests/e2e in shipped diffs; high green rate on merge CI; pulls others in after open"
+      "note": "~1.89d median time to merge; high iteration (commits/PR); strong review throughput; active WIP + shipping; tests/e2e in shipped diffs; high green rate on merge CI; pulls others in after open",
+      "tl_productive_days": 9,
+      "tl_longest_streak_days": 5,
+      "tl_latest_streak_days": 2,
+      "tl_max_gap_days": 8,
+      "tl_first_merge_date": "2026-03-12",
+      "tl_last_merge_date": "2026-03-24",
+      "tl_days_since_last_merge": 8,
+      "tl_best_week_merges": 7,
+      "tl_active_day_pct": 42.9,
+      "performance_band": "High"
     },
     {
       "login": "georgemunyoro",
@@ -613,7 +734,17 @@
       "open_wip_files": 43,
       "open_wip_commits": 23,
       "open_wip_discussion": 34,
-      "note": "~0.64d median time to merge; high iteration (commits/PR); strong review throughput; active WIP + shipping; tests/e2e in shipped diffs; pulls others in after open"
+      "note": "~0.64d median time to merge; high iteration (commits/PR); strong review throughput; active WIP + shipping; tests/e2e in shipped diffs; pulls others in after open",
+      "tl_productive_days": 10,
+      "tl_longest_streak_days": 5,
+      "tl_latest_streak_days": 2,
+      "tl_max_gap_days": 4,
+      "tl_first_merge_date": "2026-03-13",
+      "tl_last_merge_date": "2026-04-01",
+      "tl_days_since_last_merge": 0,
+      "tl_best_week_merges": 8,
+      "tl_active_day_pct": 47.6,
+      "performance_band": "High"
     },
     {
       "login": "andrewm4894",
@@ -659,7 +790,17 @@
       "open_wip_files": 884,
       "open_wip_commits": 247,
       "open_wip_discussion": 209,
-      "note": "~0.26d median time to merge; high iteration (commits/PR); strong review throughput; active WIP + shipping; tests/e2e in shipped diffs; high green rate on merge CI; pulls others in after open"
+      "note": "~0.26d median time to merge; high iteration (commits/PR); strong review throughput; active WIP + shipping; tests/e2e in shipped diffs; high green rate on merge CI; pulls others in after open",
+      "tl_productive_days": 14,
+      "tl_longest_streak_days": 8,
+      "tl_latest_streak_days": 3,
+      "tl_max_gap_days": 3,
+      "tl_first_merge_date": "2026-03-12",
+      "tl_last_merge_date": "2026-04-01",
+      "tl_days_since_last_merge": 0,
+      "tl_best_week_merges": 14,
+      "tl_active_day_pct": 66.7,
+      "performance_band": "High"
     },
     {
       "login": "skoob13",
@@ -705,7 +846,17 @@
       "open_wip_files": 342,
       "open_wip_commits": 144,
       "open_wip_discussion": 93,
-      "note": "~0.15d median time to merge; high iteration (commits/PR); strong review throughput; active WIP + shipping; tests/e2e in shipped diffs; pulls others in after open"
+      "note": "~0.15d median time to merge; high iteration (commits/PR); strong review throughput; active WIP + shipping; tests/e2e in shipped diffs; pulls others in after open",
+      "tl_productive_days": 11,
+      "tl_longest_streak_days": 3,
+      "tl_latest_streak_days": 3,
+      "tl_max_gap_days": 4,
+      "tl_first_merge_date": "2026-03-12",
+      "tl_last_merge_date": "2026-04-01",
+      "tl_days_since_last_merge": 0,
+      "tl_best_week_merges": 16,
+      "tl_active_day_pct": 52.4,
+      "performance_band": "High"
     },
     {
       "login": "mariusandra",
@@ -751,7 +902,17 @@
       "open_wip_files": 122,
       "open_wip_commits": 26,
       "open_wip_discussion": 41,
-      "note": "~0.1d median time to merge; high iteration (commits/PR); strong review throughput; active WIP + shipping; tests/e2e in shipped diffs; pulls others in after open"
+      "note": "~0.1d median time to merge; high iteration (commits/PR); strong review throughput; active WIP + shipping; tests/e2e in shipped diffs; pulls others in after open",
+      "tl_productive_days": 11,
+      "tl_longest_streak_days": 2,
+      "tl_latest_streak_days": 2,
+      "tl_max_gap_days": 3,
+      "tl_first_merge_date": "2026-03-12",
+      "tl_last_merge_date": "2026-04-01",
+      "tl_days_since_last_merge": 0,
+      "tl_best_week_merges": 10,
+      "tl_active_day_pct": 52.4,
+      "performance_band": "High"
     },
     {
       "login": "vdekrijger",
@@ -797,7 +958,17 @@
       "open_wip_files": 43,
       "open_wip_commits": 20,
       "open_wip_discussion": 17,
-      "note": "~0.74d median time to merge; high iteration (commits/PR); strong review throughput; active WIP + shipping; tests/e2e in shipped diffs; pulls others in after open"
+      "note": "~0.74d median time to merge; high iteration (commits/PR); strong review throughput; active WIP + shipping; tests/e2e in shipped diffs; pulls others in after open",
+      "tl_productive_days": 11,
+      "tl_longest_streak_days": 4,
+      "tl_latest_streak_days": 3,
+      "tl_max_gap_days": 3,
+      "tl_first_merge_date": "2026-03-12",
+      "tl_last_merge_date": "2026-04-01",
+      "tl_days_since_last_merge": 0,
+      "tl_best_week_merges": 13,
+      "tl_active_day_pct": 52.4,
+      "performance_band": "High"
     },
     {
       "login": "rnegron",
@@ -843,7 +1014,17 @@
       "open_wip_files": 181,
       "open_wip_commits": 85,
       "open_wip_discussion": 44,
-      "note": "~0.54d median time to merge; high iteration (commits/PR); strong review throughput; active WIP + shipping; tests/e2e in shipped diffs; high green rate on merge CI; pulls others in after open"
+      "note": "~0.54d median time to merge; high iteration (commits/PR); strong review throughput; active WIP + shipping; tests/e2e in shipped diffs; high green rate on merge CI; pulls others in after open",
+      "tl_productive_days": 13,
+      "tl_longest_streak_days": 5,
+      "tl_latest_streak_days": 3,
+      "tl_max_gap_days": 4,
+      "tl_first_merge_date": "2026-03-12",
+      "tl_last_merge_date": "2026-04-01",
+      "tl_days_since_last_merge": 0,
+      "tl_best_week_merges": 10,
+      "tl_active_day_pct": 61.9,
+      "performance_band": "High"
     },
     {
       "login": "pauldambra",
@@ -889,7 +1070,17 @@
       "open_wip_files": 143,
       "open_wip_commits": 71,
       "open_wip_discussion": 90,
-      "note": "~0.32d median time to merge; high iteration (commits/PR); strong review throughput; active WIP + shipping; tests/e2e in shipped diffs; high green rate on merge CI; pulls others in after open"
+      "note": "~0.32d median time to merge; high iteration (commits/PR); strong review throughput; active WIP + shipping; tests/e2e in shipped diffs; high green rate on merge CI; pulls others in after open",
+      "tl_productive_days": 15,
+      "tl_longest_streak_days": 5,
+      "tl_latest_streak_days": 2,
+      "tl_max_gap_days": 3,
+      "tl_first_merge_date": "2026-03-12",
+      "tl_last_merge_date": "2026-04-01",
+      "tl_days_since_last_merge": 0,
+      "tl_best_week_merges": 15,
+      "tl_active_day_pct": 71.4,
+      "performance_band": "High"
     },
     {
       "login": "MattBro",
@@ -935,7 +1126,22 @@
       "open_wip_files": 3,
       "open_wip_commits": 2,
       "open_wip_discussion": 4,
-      "note": "~0.98d median time to merge; high iteration (commits/PR); strong review throughput; active WIP + shipping; tests/e2e in shipped diffs; pulls others in after open"
+      "note": "~0.98d median time to merge; high iteration (commits/PR); strong review throughput; active WIP + shipping; tests/e2e in shipped diffs; pulls others in after open",
+      "tl_productive_days": 13,
+      "tl_longest_streak_days": 5,
+      "tl_latest_streak_days": 3,
+      "tl_max_gap_days": 3,
+      "tl_first_merge_date": "2026-03-12",
+      "tl_last_merge_date": "2026-04-01",
+      "tl_days_since_last_merge": 0,
+      "tl_best_week_merges": 19,
+      "tl_active_day_pct": 61.9,
+      "performance_band": "High"
     }
-  ]
+  ],
+  "performance_band": {
+    "method": "tertiles on full_stack_score within the computed window",
+    "q33": 16.593,
+    "q66": 59.513
+  }
 }

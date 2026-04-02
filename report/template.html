@@ -108,14 +108,95 @@
       font-size: 11px;
     }
     a { color: var(--accent); }
+
+    .metric-tip {
+      position: fixed;
+      z-index: 1000;
+      max-width: 360px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #fff;
+      font-size: 12px;
+      line-height: 1.35;
+      display: none;
+      pointer-events: none;
+    }
+    .tabs { display: flex; gap: 0.35rem; flex-wrap: wrap; margin-top: 0.75rem; }
+    .tab {
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      padding: 0.4rem 0.85rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      font-family: inherit;
+    }
+    .tab:hover { border-color: var(--accent); }
+    .tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .tab-panel[hidden] { display: none !important; }
+    #tlChart {
+      display: flex;
+      flex-wrap: nowrap;
+      align-items: flex-end;
+      gap: 3px;
+      min-height: 72px;
+      padding: 0.5rem 0;
+    }
+    .tl-day {
+      flex: 0 0 6px;
+      width: 6px;
+      min-width: 6px;
+      border-radius: 2px;
+      background: var(--border);
+      align-self: flex-end;
+      display: flex;
+      flex-direction: column-reverse;
+      overflow: hidden;
+    }
+    .tl-day:hover { outline: 1px solid var(--accent); }
+    .tl-seg {
+      width: 100%;
+      background: var(--good);
+      border-radius: 0;
+    }
+    #tlEngineers {
+      width: min(420px, 100%);
+      max-width: 520px;
+      padding: 0.35rem 0.45rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      min-width: 240px;
+    }
+    #tlLegend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem 0.75rem;
+      margin-top: 0.5rem;
+      color: var(--muted);
+      align-items: center;
+      font-size: 12px;
+    }
+    .lg-item { display: inline-flex; align-items: center; gap: 0.35rem; }
+    .lg-swatch { width: 10px; height: 10px; border-radius: 2px; background: var(--accent); border: 1px solid rgba(255,255,255,0.15); }
   </style>
 </head>
 <body>
   <header>
     <h1>Engineer productivity & impact</h1>
     <div class="meta" id="subtitle"></div>
+    <nav class="tabs" aria-label="Views">
+      <button type="button" class="tab active" data-panel="panel-overview">Overview</button>
+      <button type="button" class="tab" data-panel="panel-timelines">Timelines</button>
+      <button type="button" class="tab" data-panel="panel-scoring">Scoring logic</button>
+    </nav>
   </header>
   <main>
+    <section id="panel-overview" class="tab-panel">
     <div class="grid" id="kpis"></div>
     <p style="margin:0 0 0.75rem;">
       <label for="q">Filter</label>
@@ -138,8 +219,99 @@
       <strong>Delivery:</strong> issue keywords in PR text; tests <code>--fetch-files</code>; merge CI <code>--fetch-merge-checks</code>; teammate engagement after open <code>--fetch-collaboration</code>.
       Metrics are heuristics — use for trends, not performance reviews in isolation.
     </footer>
+    </section>
+
+    <section id="panel-timelines" class="tab-panel" hidden>
+      <p class="meta" id="tlWindow"></p>
+      <p class="meta" id="tlNote"></p>
+      <p style="margin: 0.75rem 0 0.25rem;">
+        <label for="tlEngineers">Engineers (multi)</label>
+        <select id="tlEngineers" multiple size="6" aria-label="Select engineers for merge timeline"></select>
+      </p>
+      <p style="margin: 0 0 0.5rem;">
+        <label for="tlQ" style="display:inline-block; min-width:60px;">Search</label>
+        <input type="search" id="tlQ" placeholder="Filter by login…" autocomplete="off" />
+      </p>
+      <p class="meta" id="tlSelectedInfo"></p>
+      <div id="tlLegend"></div>
+      <div class="grid" id="tlSummary"></div>
+      <div style="overflow-x: auto; margin-top: 0.75rem;">
+        <div id="tlChart" role="img" aria-label="Daily merge counts (stacked by selected engineers)"></div>
+      </div>
+      <p class="meta" style="margin-top: 0.5rem;">Each narrow column is one UTC calendar day. Bar height ∝ total merges that day across selected engineers; segments show each engineer’s merges.</p>
+    </section>
+
+    <section id="panel-scoring" class="tab-panel" hidden>
+      <h2 style="margin: 0 0 0.75rem; font-size: 1.05rem;">How the “impact” scores are built</h2>
+      <div class="card" style="margin-bottom: 0.75rem;">
+        <strong>Intuition:</strong> we rank engineers by a blend of
+        <strong>shipped work</strong> (diff + paths + labels),
+        <strong>collaboration</strong> (help after PR open + review/help signals),
+        and <strong>delivery completion</strong> (closing language + testing collateral + merge CI success when available).
+      </div>
+
+      <div class="card" style="margin-bottom: 0.75rem;">
+        <strong>Leaderboard score:</strong> <code>full_stack_score = combined_score + delivery_score + collaboration_score</code><br/>
+        <span class="meta">Sorting uses <code>full_stack_score</code>; the table also shows the components for context.</span>
+      </div>
+
+      <div class="card" style="margin-bottom: 0.75rem;">
+        <strong>1) Shipping / “what they landed”</strong>
+        <ul style="margin: 0.5rem 0 0 1.1rem; padding: 0;">
+          <li><code>shipping_score</code> sums per-PR: <code>size_component × path_multiplier × label_multiplier</code></li>
+          <li><code>size_component = sqrt(log1p(additions+deletions)) × min(1, log1p(changed_files)/4)</code> (sublinear in churn)</li>
+          <li><code>path_multiplier</code> uses per-file <code>path_weight(filename)</code> averaged over touched files.</li>
+          <li><code>label_multiplier</code> starts at 1 and boosts if label names contain: <code>bug/fix</code>, <code>security</code>, <code>breaking</code>, <code>priority</code> (or <code>p0/p1</code>).</li>
+        </ul>
+        <div class="meta" style="margin-top: 0.5rem;">
+          Path heuristic examples: lockfiles/snapshots/images &rarr; 0.15; <code>docs/</code> &rarr; 0.45; <code>ee/</code> &rarr; 1.25; <code>posthog/</code>/<code>frontend/</code>/<code>products/</code> &rarr; ~1.1–1.15; source files &rarr; ~1.05.
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom: 0.75rem;">
+        <strong>2) Review leverage</strong>
+        <ul style="margin: 0.5rem 0 0 1.1rem; padding: 0;">
+          <li>With <code>--fetch-reviews</code>, we add <code>review_score</code> from distinct reviewer–PR pairs.</li>
+          <li>Base per pair: <code>0.35</code>.</li>
+          <li>If the review state is <code>APPROVED</code>: +<code>0.65</code>. Otherwise, nonstandard states get <code>0.25</code>.</li>
+          <li>De-duped per (reviewer, PR).</li>
+        </ul>
+      </div>
+
+      <div class="card" style="margin-bottom: 0.75rem;">
+        <strong>3) Delivery completion (“end-to-end-ish”)</strong>
+        <ul style="margin: 0.5rem 0 0 1.1rem; padding: 0;">
+          <li><code>issue closure</code>: PR body/title contains <code>close/fix/resolve</code> + <code>#NNN</code>.</li>
+          <li><code>linked_issue_refs</code>: counts those referenced <code>#NNN</code>.</li>
+          <li><code>tests/e2e collateral</code>: PR touches paths that look like tests (requires <code>--fetch-files</code>).</li>
+          <li><code>merge CI success</code>: completed check-runs on the merge commit where <code>conclusion == success</code> (requires <code>--fetch-merge-checks</code>).</li>
+        </ul>
+        <div class="meta" style="margin-top: 0.5rem;">
+          Each term is capped in code to prevent huge diffs from dominating.
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom: 0.75rem;">
+        <strong>4) Collaboration after PR open</strong>
+        <ul style="margin: 0.5rem 0 0 1.1rem; padding: 0;">
+          <li>With <code>--fetch-collaboration</code>, we look at <strong>comments after PR created_at</strong> on PRs you merged.</li>
+          <li>Counts of non-author, non-bot issue-thread comments and diff line comments become <code>collaboration_score</code> via <code>log1p</code> and caps.</li>
+          <li>We also include breadth signals (how many distinct partners), plus small request/assignee signals from the PR payload.</li>
+        </ul>
+      </div>
+
+      <div class="card" style="margin-bottom: 0.75rem;">
+        <strong>Timeline columns</strong> (<code>tl_*</code>): derived from <em>merge dates only</em> (UTC calendar days). They don’t affect the leaderboard score; they’re intended for scheduling (“streaks”, “gaps”, “how recent”).
+      </div>
+
+      <div class="card">
+        <strong>Scheduling band</strong>: <code>performance_band</code> is High/Medium/Low from tertiles on <code>full_stack_score</code> within the computed window (not an absolute “quality” measure).
+      </div>
+    </section>
   </main>
+  <div id="metricTip" class="metric-tip" aria-hidden="true"></div>
   <script type="application/json" id="payload">__PAYLOAD__</script>
+  <script type="application/json" id="timelinePayload">__TIMELINE_PAYLOAD__</script>
   <script>
     const payload = JSON.parse(document.getElementById('payload').textContent);
     const engineers = payload.engineers || [];
@@ -172,6 +344,17 @@
 
     const columns = [
       { key: 'login', label: 'Login', fmt: (r) => `<span class="login">${escCell(r.login)}</span>` },
+      {
+        key: 'performance_band',
+        label: 'Perf band',
+        fmt: (r) => {
+          const b = r.performance_band || '—';
+          let color = 'var(--muted)';
+          if (b === 'High') color = 'var(--good)';
+          else if (b === 'Low') color = '#fb7185';
+          return `<span style="color:${color}; font-weight:700">${escCell(b)}</span>`;
+        },
+      },
       { key: 'full_stack_score', label: 'Full stack Σ', num: true },
       { key: 'delivery_score', label: 'Delivery Σ', num: true },
       { key: 'collaboration_score', label: 'Collab Σ', num: true },
@@ -198,6 +381,13 @@
       { key: 'merge_check_runs_total', label: 'Merge checks n', num: true },
       { key: 'merge_rate_pct', label: 'Merge %', num: true, fmt: (r) => (r.merge_rate_pct != null ? r.merge_rate_pct + '%' : '—') },
       { key: 'merged_prs', label: 'Merged', num: true },
+      { key: 'tl_productive_days', label: 'TL active days', num: true },
+      { key: 'tl_longest_streak_days', label: 'TL max streak', num: true },
+      { key: 'tl_latest_streak_days', label: 'TL last streak', num: true },
+      { key: 'tl_max_gap_days', label: 'TL max gap', num: true },
+      { key: 'tl_days_since_last_merge', label: 'TL days Δ merge', num: true, fmt: (r) => (r.tl_days_since_last_merge != null ? String(r.tl_days_since_last_merge) : '—') },
+      { key: 'tl_best_week_merges', label: 'TL best week', num: true },
+      { key: 'tl_active_day_pct', label: 'TL day %', num: true, fmt: (r) => (r.tl_active_day_pct != null ? r.tl_active_day_pct + '%' : '—') },
       { key: 'prs_opened_in_window', label: 'Opened', num: true },
       { key: 'open_prs_updated', label: 'Open PRs', num: true },
       { key: 'open_wip_churn', label: 'Open WIP ±lines', num: true },
@@ -215,13 +405,83 @@
       { key: 'revert_merges', label: 'Reverts', num: true },
     ];
 
+    const metricHints = {
+      login: "GitHub login (bots filtered from authorship).",
+      performance_band: "Scheduling band from full_stack_score tertiles within the current window: High / Medium / Low.",
+      full_stack_score: "Composite sort key: combined_score + delivery_score + collaboration_score.",
+      delivery_score: "Delivery proxy: issue-closure keywords + test-touch paths + merge-commit CI success (if fetched).",
+      collaboration_score: "Collaboration proxy: teammate comments after your PR opened + partner breadth + (small) request/assignee signals.",
+      combined_score: "combined_score = shipping_score + review_score.",
+      collab_prs_with_teammate_after_open: "Count of your merged PRs where teammates commented/engaged after PR open.",
+      collab_unique_partners_on_own_prs: "Distinct teammate logins involved on your merged PRs (after PR open).",
+      collab_issue_comments_others_after_open: "Number of non-author, non-bot issue-thread comments after PR created_at on your merged PRs.",
+      collab_line_comments_others_after_open: "Number of non-author, non-bot diff-line comments after PR created_at on your merged PRs.",
+      rewarded_skills: "Narrative ‘celebration’ text based on delivery/collaboration thresholds (not a performance rating).",
+      prs_with_close_keyword: "Merged PRs whose title/body contains close/fix/resolve keywords with #NNN for issues in this repo.",
+      linked_issue_refs: "Total issue reference count from those keywords (same issue can appear across multiple PRs).",
+      prs_touching_tests: "Merged PRs that touched paths matching test/e2e heuristics (requires --fetch-files).",
+      test_files_touched: "Count of test/e2e files touched across your merged PRs.",
+      merge_check_success_pct: "Completed check-run success rate on merge_commit_sha (requires --fetch-merge-checks).",
+      merge_check_runs_total: "Number of completed check-runs found on merge_commit_sha (requires --fetch-merge-checks).",
+      merge_rate_pct: "merged_prs / prs_opened_in_window (approximate funnel; not causal).",
+      merged_prs: "Number of merged PRs authored by this login in the window.",
+      tl_productive_days: "Timeline: distinct UTC calendar days (in window) with ≥1 merge by this author.",
+      tl_longest_streak_days: "Timeline: longest streak of consecutive productive days (UTC) by this author.",
+      tl_latest_streak_days: "Timeline: streak length ending on the author’s last merge day in the window.",
+      tl_max_gap_days: "Timeline: longest idle gap (calendar days without merges) inside the window.",
+      tl_days_since_last_merge: "Timeline: days from window_end to author’s last merge date (null if none).",
+      tl_best_week_merges: "Timeline: best single ISO week by merge count (max merges in any week).",
+      tl_active_day_pct: "Timeline: percent of window calendar days that had ≥1 merge by this author.",
+      prs_opened_in_window: "PRs created in the window by this author (search: created).",
+      open_prs_updated: "Open PRs owned by this author with updated time in the window (search: updated).",
+      open_wip_churn: "Open WIP churn proxy: open additions + open deletions in the window for this author.",
+      median_cycle_days: "Median cycle time (merged_at − created_at) in days over this author’s merged PRs.",
+      commits_on_merged_prs: "Sum of PR commits count for merged PRs authored by this login.",
+      avg_commits_per_merged_pr: "Average commits per merged PR (commits_on_merged_prs / merged_prs).",
+      discussion_on_merged_prs: "Total PR discussion load on merged PRs authored by this login: comments + review_comments.",
+      workflow_runs: "Actions runs attributed to triggering_actor (requires --fetch-actions; newest-first sample).",
+      shipping_score: "Shipping proxy from your merged PRs: sublinear diff size + path weighting + label hints.",
+      review_score: "Review proxy: distinct review submissions on others’ PRs (requires --fetch-reviews).",
+      additions: "Sum of additions on merged PRs authored by this login.",
+      deletions: "Sum of deletions on merged PRs authored by this login.",
+      changed_files: "Sum of changed_files on merged PRs authored by this login.",
+      review_events_on_others_prs: "Count of review submissions you made on others’ merged PRs (requires --fetch-reviews).",
+      revert_merges: "Merged PRs whose title starts with 'revert' (heuristic).",
+      open_wip_files: "Open WIP blast-radius: sum of changed_files over open PRs in window.",
+      open_wip_commits: "Open WIP iteration count: sum of commits over open PRs in window.",
+      open_wip_discussion: "Open WIP discussion load: comments + review_comments over open PRs in window.",
+      draft_merges: "Merged PRs that were marked draft at fetch time (if present in payload).",
+      revert_merges: "Merged PRs whose title starts with 'revert'.",
+    };
+
+    const metricTip = document.getElementById('metricTip');
     const head = document.getElementById('head');
     columns.forEach((c) => {
       const th = document.createElement('th');
       th.textContent = c.label;
       th.dataset.key = c.key;
       th.dataset.num = c.num ? '1' : '';
+      // Intentionally do NOT use the native `title` tooltip (it creates a second hover layer).
+      // We show meanings only via the custom `#metricTip` div.
+      th.title = '';
       head.appendChild(th);
+
+      const hint = metricHints[c.key] || '';
+      if (hint) {
+        th.addEventListener('mouseenter', (ev) => {
+          metricTip.textContent = hint;
+          metricTip.style.display = 'block';
+          metricTip.style.left = (ev.clientX + 12) + 'px';
+          metricTip.style.top = (ev.clientY + 12) + 'px';
+        });
+        th.addEventListener('mousemove', (ev) => {
+          metricTip.style.left = (ev.clientX + 12) + 'px';
+          metricTip.style.top = (ev.clientY + 12) + 'px';
+        });
+        th.addEventListener('mouseleave', () => {
+          metricTip.style.display = 'none';
+        });
+      }
     });
 
     let sortKey = 'full_stack_score';
@@ -276,6 +536,7 @@
       d.classList.add('open');
       document.getElementById('dlogin').textContent = r.login;
       const parts = [
+        ['Performance band (High / Medium / Low)', r.performance_band],
         ['Full stack score (default sort)', r.full_stack_score],
         ['Delivery score (issues + tests + merge CI)', r.delivery_score],
         ['Collaboration score (teammates after open)', r.collaboration_score],
@@ -297,6 +558,14 @@
         ['Shipping score', r.shipping_score],
         ['Review score', r.review_score],
         ['Merged PRs', r.merged_prs],
+        ['Timeline: productive days (≥1 merge/day UTC)', r.tl_productive_days],
+        ['Timeline: longest consecutive productive streak (days)', r.tl_longest_streak_days],
+        ['Timeline: streak ending on last merge day', r.tl_latest_streak_days],
+        ['Timeline: longest idle gap (no merges, calendar days)', r.tl_max_gap_days],
+        ['Timeline: first / last merge date', `${r.tl_first_merge_date ?? '—'} → ${r.tl_last_merge_date ?? '—'}`],
+        ['Timeline: days since last merge (vs window end)', r.tl_days_since_last_merge != null ? r.tl_days_since_last_merge : '—'],
+        ['Timeline: best single week (merge count)', r.tl_best_week_merges],
+        ['Timeline: % of window days with ≥1 merge', r.tl_active_day_pct != null ? r.tl_active_day_pct + '%' : '—'],
         ['PRs opened in window', r.prs_opened_in_window],
         ['Open PRs updated in window', r.open_prs_updated],
         ['Open WIP line churn (+/−)', r.open_wip_churn],
@@ -325,6 +594,215 @@
     }
 
     render();
+
+    // Tab switching
+    document.querySelectorAll('.tab').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('.tab-panel').forEach((p) => { p.hidden = true; });
+        const panel = document.getElementById(btn.dataset.panel);
+        if (panel) panel.hidden = false;
+      });
+    });
+
+    let timelineData = {};
+    try {
+      timelineData = JSON.parse(document.getElementById('timelinePayload').textContent);
+    } catch (e) {
+      console.warn('timeline payload', e);
+    }
+
+    function isoDaysBetween(start, end) {
+      if (!start || !end) return [];
+      const a = [];
+      const d = new Date(start + 'T12:00:00.000Z');
+      const last = new Date(end + 'T12:00:00.000Z');
+      while (d <= last) {
+        a.push(d.toISOString().slice(0, 10));
+        d.setUTCDate(d.getUTCDate() + 1);
+      }
+      return a;
+    }
+
+    function renderTimeline(selectedLogins) {
+      const authors = timelineData.authors || {};
+      const chart = document.getElementById('tlChart');
+      const sum = document.getElementById('tlSummary');
+      const legend = document.getElementById('tlLegend');
+      const selectedInfo = document.getElementById('tlSelectedInfo');
+
+      chart.innerHTML = '';
+      sum.innerHTML = '';
+      legend.innerHTML = '';
+      selectedInfo.textContent = '';
+
+      const cleaned = (selectedLogins || [])
+        .filter((l) => l && authors[l])
+        .filter((v, i, a) => a.indexOf(v) === i);
+
+      if (!cleaned.length) {
+        chart.innerHTML = '<span class="meta">Select at least one engineer with merges in the window.</span>';
+        return;
+      }
+
+      const palette = ['#5c7cfa', '#3ddc97', '#f59e0b', '#fb7185', '#a78bfa', '#22c55e', '#38bdf8', '#e879f9'];
+      const colorOf = (login) => palette[cleaned.indexOf(login) % palette.length];
+
+      const ws = timelineData.window_start;
+      const we = timelineData.window_end;
+      const days = isoDaysBetween(ws, we);
+      const windowTotalDays = days.length || 1;
+
+      // Precompute totals per day across selected engineers
+      const totals = days.map((iso) => {
+        let t = 0;
+        cleaned.forEach((login) => {
+          const au = authors[login];
+          const daily = (au && au.daily_merges) ? au.daily_merges : {};
+          t += daily[iso] || 0;
+        });
+        return t;
+      });
+      const maxTotal = Math.max(1, ...totals);
+      const chartHeight = 60; // px: segment heights scale into this area
+
+      cleaned.forEach((login, idx) => {
+        const au = authors[login];
+        const lg = document.createElement('div');
+        lg.className = 'lg-item';
+        lg.innerHTML = `<span class="lg-swatch" style="background:${colorOf(login)}"></span><span>${escCell(login)}</span>`;
+        legend.appendChild(lg);
+      });
+      selectedInfo.textContent = `Selected: ${cleaned.length} engineer(s) · window days: ${windowTotalDays}`;
+
+      // Render stacked bars
+      days.forEach((iso, dayIdx) => {
+        const total = totals[dayIdx] || 0;
+        // Ensure each stacked bar has enough height so tiny segments don't overflow the column.
+        const dayH = total > 0 ? Math.max(6, Math.round((total / maxTotal) * chartHeight)) : 6;
+
+        const div = document.createElement('div');
+        div.className = 'tl-day';
+        div.style.height = dayH + 'px';
+        div.title = iso + ': total ' + total;
+
+        if (total > 0) {
+          // Append segments bottom-up (column-reverse)
+          let segHeights = 0;
+          cleaned.forEach((login) => {
+            const au = authors[login];
+            const daily = (au && au.daily_merges) ? au.daily_merges : {};
+            const c = daily[iso] || 0;
+            if (!c) return;
+            const h = Math.max(1, Math.round((c / total) * dayH));
+            segHeights += h;
+            const seg = document.createElement('div');
+            seg.className = 'tl-seg';
+            seg.style.height = h + 'px';
+            seg.style.background = colorOf(login);
+            seg.title = iso + ': ' + login + ' → ' + c;
+            div.appendChild(seg);
+          });
+        }
+        chart.appendChild(div);
+      });
+
+      // Summary cards: one per selected engineer
+      cleaned.forEach((login) => {
+        const au = authors[login];
+        const cards = [
+          ['Productive days', au.productive_days],
+          ['Longest streak', au.longest_streak_days],
+          ['Latest streak', au.latest_streak_days],
+          ['Max gap', au.max_gap_days],
+          ['Last merge', au.last_merge_date || '—'],
+          ['Days since last', au.days_since_last_merge != null ? au.days_since_last_merge : '—'],
+        ];
+        const wrap = document.createElement('div');
+        wrap.className = 'card';
+        // Keep it compact: single-line cards for the key scheduling info.
+        wrap.innerHTML = `<strong style="color:${colorOf(login)}">${escCell(login)}</strong>`;
+        const inner = document.createElement('div');
+        inner.style.marginTop = '0.35rem';
+        cards.forEach(([label, val]) => {
+          const p = document.createElement('div');
+          p.style.color = 'var(--muted)';
+          p.style.display = 'flex';
+          p.style.justifyContent = 'space-between';
+          p.style.gap = '0.5rem';
+          p.innerHTML = `<span>${label}</span><span style="color:var(--text);font-variant-numeric:tabular-nums">${escCell(String(val ?? '—'))}</span>`;
+          inner.appendChild(p);
+        });
+        wrap.appendChild(inner);
+        sum.appendChild(wrap);
+      });
+    }
+
+    document.getElementById('tlWindow').textContent =
+      timelineData.window_start && timelineData.window_end
+        ? `Window (UTC): ${timelineData.window_start} → ${timelineData.window_end}` +
+          (timelineData.window_calendar_days ? ` · ${timelineData.window_calendar_days} calendar days` : '')
+        : '';
+
+    document.getElementById('tlNote').textContent = timelineData.note || '';
+
+    const tlSel = document.getElementById('tlEngineers');
+    const authorKeys = Object.keys(timelineData.authors || {}).sort();
+    tlSel.innerHTML = authorKeys.map((l) => `<option value="${escAttr(l)}">${escCell(l)}</option>`).join('');
+
+    function getSelectedLogins() {
+      const opts = Array.from(tlSel.options || []);
+      return opts.filter((o) => o.selected).map((o) => o.value);
+    }
+
+    function setSelectedLogins(logins) {
+      const set = new Set((logins || []).filter(Boolean));
+      Array.from(tlSel.options || []).forEach((o) => {
+        o.selected = set.has(o.value);
+      });
+    }
+
+    // Filter the engineers list (keeps selections; disables non-matching options).
+    const tlQ = document.getElementById('tlQ');
+    tlQ.addEventListener('input', () => {
+      const q = (tlQ.value || '').trim().toLowerCase();
+      Array.from(tlSel.options || []).forEach((o) => {
+        const v = (o.value || '').toLowerCase();
+        o.disabled = !!q && !v.includes(q);
+      });
+    });
+
+    // Initial selection: top 3 from the Overview table that have timeline data.
+    const initial = (engineers || [])
+      .slice(0, 3)
+      .map((r) => r.login)
+      .filter((l) => (timelineData.authors || {})[l]);
+    setSelectedLogins(initial.slice(0, 4));
+    tlSel.addEventListener('change', () => renderTimeline(getSelectedLogins()));
+    renderTimeline(getSelectedLogins());
+
+    document.getElementById('body').addEventListener('click', (ev) => {
+      const tr = ev.target.closest('tr[data-login]');
+      if (!tr) return;
+      const login = tr.dataset.login;
+      const authors = timelineData.authors || {};
+      if (authors[login]) {
+        // Ctrl/Cmd-click toggles in multi selection; normal click focuses a single engineer.
+        const selected = new Set(getSelectedLogins());
+        if (ev.ctrlKey || ev.metaKey) {
+          if (selected.has(login)) selected.delete(login);
+          else selected.add(login);
+        } else {
+          selected.clear();
+          selected.add(login);
+        }
+        // Cap to keep the chart readable.
+        const capped = Array.from(selected).slice(0, 8);
+        setSelectedLogins(capped);
+        renderTimeline(capped);
+      }
+    });
   </script>
 </body>
 </html>

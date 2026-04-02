@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import sys
 from datetime import date
 from pathlib import Path
@@ -59,7 +60,7 @@ def main() -> None:
     collaboration_by_pr = gh.load_json(raw / "collaboration_by_pr.json", {})
     merge_checks_by_pr = gh.load_json(raw / "merge_checks_by_pr.json", {})
 
-    rows, summary, bundle = gh.compute_engineer_metrics(
+    rows, summary, bundle, timeline_export = gh.compute_engineer_metrics(
         repo=repo,
         window_start=window_start,
         window_end=window_end,
@@ -75,13 +76,57 @@ def main() -> None:
         merge_checks_by_pr=merge_checks_by_pr if isinstance(merge_checks_by_pr, dict) else {},
     )
 
+    # Performance band from `full_stack_score` tertiles (High / Medium / Low).
+    # This is intended for scheduling prioritization signals, not formal evaluation.
+    scores = [r.get("full_stack_score") for r in rows if r.get("full_stack_score") is not None]
+    scores = [float(s) for s in scores if isinstance(s, (int, float))]
+
+    def _quantile(sorted_scores: list[float], p: float) -> float:
+        n = len(sorted_scores)
+        if n == 1:
+            return sorted_scores[0]
+        pos = (n - 1) * p
+        lo = int(math.floor(pos))
+        hi = int(math.ceil(pos))
+        if lo == hi:
+            return sorted_scores[lo]
+        w = pos - lo
+        return sorted_scores[lo] * (1.0 - w) + sorted_scores[hi] * w
+
+    q33 = q66 = None
+    if len(scores) >= 3:
+        sorted_scores = sorted(scores)
+        q33 = _quantile(sorted_scores, 1 / 3)
+        q66 = _quantile(sorted_scores, 2 / 3)
+
+    for r in rows:
+        s = r.get("full_stack_score")
+        if s is None or q33 is None or q66 is None:
+            r["performance_band"] = "Medium" if s is not None else "—"
+            continue
+        if float(s) >= q66:
+            r["performance_band"] = "High"
+        elif float(s) <= q33:
+            r["performance_band"] = "Low"
+        else:
+            r["performance_band"] = "Medium"
+
+    summary["performance_band"] = {
+        "method": "tertiles on full_stack_score within the computed window",
+        "q33": q33,
+        "q66": q66,
+    }
+
     (metrics_dir / "metrics_by_author.json").write_text(json.dumps(rows, indent=2), encoding="utf-8")
     gh.write_csv(metrics_dir / "metrics_by_author.csv", rows)
     gh.write_csv(metrics_dir / "engineers_for_notion.csv", rows)
     (metrics_dir / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
+    (metrics_dir / "timeline_by_author.json").write_text(
+        json.dumps(timeline_export, indent=2), encoding="utf-8"
+    )
 
     if args.build_report:
-        gh.build_report(metrics_dir, repo, bundle)
+        gh.build_report(metrics_dir, repo, bundle, timeline_export)
 
     print(f"[compute] Wrote → {metrics_dir}", file=sys.stderr)
     print(json.dumps(summary, indent=2))
